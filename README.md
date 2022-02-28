@@ -1,2 +1,2 @@
 # Wanderers
-Real Time Space Expploration Blockchain Game
+Real Time Space Exploration Blockchain Game
