@@ -1,3 +1,3 @@
 # Wanderers
-Real Time Solar System Space Expansion Blockchain Game
+Real Time Space Exploration Blockchain Game
  
