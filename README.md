@@ -1,5 +1,5 @@
 # SpaceXpanse: Wanderers
 Real Time Space Exploration Blockchain Game
 
-The name Wanderers came from the main goal in the game - to wander the vastness of Space. But it is also direct translation of the Latin word "Planets".
+The name Wanderers is delivered from the main purpose of the game - to wander the vastness of Space and explore it's virtues. But it is also direct translation of the Latin word "Planets".
  
