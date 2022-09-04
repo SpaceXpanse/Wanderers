@@ -1,2 +1,2 @@
 # SpaceXpanse: Wanderers
-Real Time Space Exploration Blockchain Game
+ A Real Time Blockchain Space Exploring and Trading Sandbox Game in the Metaverse
