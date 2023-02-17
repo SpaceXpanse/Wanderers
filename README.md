@@ -4,7 +4,7 @@ Closed-source
 *For-profit - Legal entity operated*  
 Massive multiplayer online game with realistic look, physics and economics  
 
-* Developed on top of SpaceXpanse Metaverse Simulator with the help from various development tools /TBA/.
+* Developed on top of [**SpaceXpanse Metaverse Simulator**](https://github.com/SpaceXpanse/Metaverse) with the help from various development tools /TBA/.
 * Made with Unreal Engine 5
 * Sophisticated gameplay: Player versus Environment aka PvE /possible addition of PvP/, massive near-real economy, tactical combat and strategic skills development
 * In-game communication in real time /through Metalog/
