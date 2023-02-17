@@ -1,7 +1,7 @@
 # SpaceXpanse: Wanderers - Dream big. Grow smart. Go further.
 ## Celestial exploration blockchain sandbox game in its own real-time metaverse
 
-SpaceXpanse: Wanderers is a video game that lets you explore and colonize a virtual metaverse, with a twist - it incorporates blockchain technology for a more secure and transparent gaming experience.
+**SpaceXpanse: Wanderers** is a video game that lets you explore and colonize a virtual metaverse, with a twist - it incorporates blockchain technology for a more secure and transparent gaming experience.
 
 In the game, you can build and customize your own spacecraft, travel through the vast universe, and discover new planets and resources. You can establish colonies on these planets, develop new technologies, and trade resources with other players in the game.
 
