@@ -1,7 +1,7 @@
 # SpaceXpanse: Wanderers - Dream big. Grow smart. Go further.
 ## Celestial exploration blockchain sandbox game in its own real-time metaverse
 Closed-source  
-For-profit - Legal entity operated  
+*For-profit - Legal entity operated*  
 Massive multiplayer online game with realistic look, physics and economics  
 
 * Developed on top of SpaceXpanse Metaverse Simulator with the help from various development tools /TBA/.
