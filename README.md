@@ -1,8 +1,8 @@
 # SpaceXpanse: Wanderers - Dream big. Grow smart. Go further.
 ## Celestial exploration blockchain sandbox game in its own real-time metaverse
-Closed-source
-For-profit - Legal entity operated
-Real-time Massive Multiplayer Open World Sandbox game with realistic look, physics and economics
+Closed-source  
+For-profit - Legal entity operated  
+Massive multiplayer online game with realistic look, physics and economics  
 
 * Developed on top of SpaceXpanse Metaverse Simulator with the help from various development tools /TBA/.
 * Made with Unreal Engine 5
