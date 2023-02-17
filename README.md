@@ -1,2 +1,2 @@
 # SpaceXpanse: Wanderers - Dream big. Grow smart. Go further.
- A Real Time Blockchain Space Exploring and Trading Sandbox Game in the Metaverse
+  Space exploration real-time blockchain sandbox game in its own metaverse.
