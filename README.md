@@ -1,5 +1,17 @@
 # SpaceXpanse: Wanderers - Dream big. Grow smart. Go further.
 ## Celestial exploration blockchain sandbox game in its own real-time metaverse
+Closed-source
+For-profit - Legal entity operated
+Real-time Massive Multiplayer Open World Sandbox game with realistic look, physics and economics
+
+* Developed on top of SpaceXpanse Metaverse Simulator with the help from various development tools /TBA/.
+* Made with Unreal Engine 5
+* Sophisticated gameplay: Player versus Environment aka PvE /possible addition of PvP/, massive near-real economy, tactical combat and strategic skills development
+* In-game communication in real time /through Metalog/
+* Creation and customization of avatars
+* NFTs for ownership of land, objects and goods
+* Artificial inteligence for automation of the gameplay /TBD/
+* VR gaming
 
 **SpaceXpanse: Wanderers** is a video game that lets you explore and colonize a virtual metaverse, with a twist - it incorporates blockchain technology for a more secure and transparent gaming experience.
 
