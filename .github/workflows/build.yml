@@ -1,0 +1,101 @@
+name: Build
+
+on:
+  push:
+    branches:
+     - dev
+     - '[0-9].[0-9].[0-9]+'
+    tags:
+#     - build
+     - 'v[0-9].[0-9].[0-9]+'
+    paths-ignore: [ 'Doc/**', 'Flights/**', 'Html/**', 'Images/**', 'Localdoc/**', 'Scenarios/**', 'Textures/**', 'Textures2/**']
+  pull_request:
+    branches:
+    - dev
+     - '[0-9].[0-9].[0-9]+'      
+    paths-ignore: [ 'Doc/**', 'Flights/**', 'Html/**', 'Images/**', 'Localdoc/**', 'Scenarios/**', 'Textures/**', 'Textures2/**']
+
+jobs:
+  build:
+    name: Build with CMake
+    
+    env:
+      DXSDK_DIR: "${{ github.workspace }}\\DXSDK"
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, x86]
+      
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Setup Problem Matcher
+      uses: ammaraskar/msvc-problem-matcher@master
+      
+    - name: Setup MSVC Console
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.architecture }}
+
+    - name: Create directories
+      run: |
+        mkdir out\build
+        mkdir out\install
+    
+    - name: Cache irrKlang package
+      uses: actions/cache@v3
+      with:
+        path: ${{ github.workspace }}\out\build\Extern\irrKlang/${{ matrix.architecture }}
+        key: irrKlang-${{ matrix.architecture }}
+        
+    - name: Cache DirectX SDK
+      id:   cache
+      uses: actions/cache@v3
+      with:
+        path: "${{ github.workspace }}\\DXSDK"
+        key:  dxsdk_jun10
+
+    - name: Download DirectX SDK
+      if:   steps.cache.outputs.cache-hit != 'true'
+      shell: cmd
+      run: |
+         curl -L https://download.microsoft.com/download/a/e/7/ae743f1f-632b-4809-87a9-aa1bb3458e31/DXSDK_Jun10.exe -o DXSDK_Jun10.exe
+         7z x DXSDK_Jun10.exe DXSDK/Include
+         7z x DXSDK_Jun10.exe DXSDK/Lib
+         del DXSDK_Jun10.exe
+         dir /S /B DXSDK
+
+    - name: Configure
+      working-directory: ${{ github.workspace }}\out\build
+      run: cmake -G Ninja ../.. -DSPACEXPANSE_MAKE_DOC=OFF -DIRRKLANG_DIR:STRING="irrKlang_DOWNLOAD" -DDXSDK_DIR:PATH="${{ github.workspace }}\\DXSDK"
+
+    - name: Build
+      working-directory: ${{ github.workspace }}\out\build
+      run: cmake --build . --config RelWithDebInfo
+
+    - name: Test
+      working-directory: ${{ github.workspace }}\out\build
+      run: ctest --config RelWithDebInfo .
+
+    - name: Install
+      working-directory: ${{ github.workspace }}\out\build
+      run: cmake --install . --prefix  ${{ github.workspace }}\out\install
+
+    - name: Pack
+#      if: ${{ github.ref == 'refs/heads/0.1.1' }}
+      working-directory: ${{ github.workspace }}\out\install\SpaceXpanse
+      shell: cmd
+      run: '7z a "${{ github.workspace }}\out\SpaceXpanse-${{ matrix.architecture }}.zip" .'
+
+    - name: Upload Build Artifact
+#      if: ${{ github.ref == 'refs/heads/0.1.1' }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: SpaceXpanse-${{ matrix.architecture }}
+        # A file, directory or wildcard pattern that describes what to upload
+        path: ${{ github.workspace }}\out\SpaceXpanse-${{ matrix.architecture }}.zip
+        retention-days: 60

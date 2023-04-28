@@ -1,0 +1,4 @@
+BEGIN_HYPERDESC
+<h1>Gameplay</h1>
+<p>This folder contains missions you can play.</p>
+END_HYPERDESC

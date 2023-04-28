@@ -1,0 +1,5 @@
+BEGIN_HYPERDESC
+<h1>Solar System</h1>
+<p>An interactive tour of our solar system. Click on the name and press Launch SpaceXpanse to visit some of our home system's planets and moons.</p>
+<p>Use right mouse button to change angle of the view.</p>
+END_HYPERDESC

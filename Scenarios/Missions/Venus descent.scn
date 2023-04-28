@@ -1,0 +1,51 @@
+BEGIN_HYPERDESC
+<h1>Venus</h1>
+<p>A glider in low orbit around Venus.
+Drop below the cloud layer but beware of the dense atmosphere!</p>
+END_HYPERDESC
+
+BEGIN_ENVIRONMENT
+  System Sol
+  Date MJD 51982.9068993519
+END_ENVIRONMENT
+
+BEGIN_FOCUS
+  Ship Glider
+END_FOCUS
+
+BEGIN_CAMERA
+  TARGET GL-01
+  MODE Cockpit
+  FOV 50.00
+END_CAMERA
+
+BEGIN_HUD
+  TYPE Surface
+END_HUD
+
+BEGIN_MFD Left
+  TYPE Surface
+END_MFD
+
+BEGIN_MFD Right
+  TYPE Orbit
+  PROJ Ship
+  REF Venus
+END_MFD
+
+BEGIN_SHIPS
+ISS:ProjectAlpha_ISS
+  STATUS Orbiting Earth
+  ELEMENTS 6734919.2 0.00090 74.51300 169.03400 328.32497 560.71341 51982.906
+  AROT 30.00 0.00 50.00
+END
+Glider:ShuttlePB
+  STATUS Orbiting Venus
+  RPOS 6236406.28 310155.03 324218.75
+  RVEL -506.157 5053.116 5282.246
+  AROT -136.27 -3.84 179.99
+  PRPLEVEL 0:0.918 1:0.9
+  NAVFREQ 0 0
+  CONFIGURATION 2
+END
+END_SHIPS

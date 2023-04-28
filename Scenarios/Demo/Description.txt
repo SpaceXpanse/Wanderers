@@ -1,0 +1,4 @@
+BEGIN_HYPERDESC
+<h1>Demos</h1>
+<p>The scenarios in this folders are for demonstration of the SpaceXpanse Metaverse simulator's capabilities.</p>
+END_HYPERDESC

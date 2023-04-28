@@ -1,0 +1,503 @@
+'''Planetary Textures'''
+
+
+Copyright (c) 2000-2022 Martin Schweiger
+
+Copyright (c) 2022-2023 SpaceXpanse
+
+
+SpaceXpanse hom<span style="color:#000000;">e: </span>[https://www.spacexpanse.org/ www.spacexpanse.org]__NOTOC__
+== <div style="color:#000080;margin-left:0in;margin-right:0in;">'''Contents'''</div> ==
+
+[[#RefHeadingToc161993151938420|1 ]]
+
+[[#RefHeadingToc20998874803680|2 ]]
+
+[[#RefHeadingToc656258318171|3 ]]
+
+[[#RefHeadingToc658258318171|4 ]]
+
+:[[#RefHeadingToc660258318171|4.1 ]]
+
+:[[#RefHeadingToc662258318171|4.2 ]]
+
+:[[#RefHeadingToc664258318171|4.3 ]]
+
+:[[#RefHeadingToc666258318171|4.4 ]]
+
+:[[#RefHeadingToc694258318171|4.5 ]]
+
+:[[#RefHeadingToc696258318171|4.6 ]]
+
+[[#RefHeadingToc698258318171|5 ]]
+
+[[#RefHeadingToc9062886699231|6 ]]
+
+:[[#RefHeadingToc9082886699231|6.1 ]]
+
+[[#RefHeadingToc11694161180312|7 ]]
+
+:[[#RefHeadingToc11714161180312|7.1 ]]
+
+:[[#RefHeadingToc11734161180312|7.2 ]]
+
+:[[#RefHeadingToc11754161180312|7.3 ]]
+
+[[#RefHeadingToc37044161180312|8 ]]
+
+[[#RefHeadingToc15663783353203|9 ]]
+
+[[#RefHeadingToc15683783353203|10 ]]
+
+= {{anchor|RefHeadingToc161993151938420}} Introduction =
+
+This document describes the format SpaceXpanse Metaverse Simulator aka SpaceXpanse uses to define the surface textures, surface elevations and cloud layers for planetary bodies (planets, moons, asteroids, etc.)
+
+SpaceXpanse introduces a more powerful planetary texturing mechanism than previous releases that provides* higher resolution levels
+* support for surface elevation modelling
+* a consistent hierarchical quad-tree implementation for level-of-detail (LOD) mapping over a large resolution range
+
+
+
+The legacy texture mapping used in previous SpaceXpanse releases is still supported by SpaceXpanse for backward compatibility, but its use in new planet texture projects is discouraged. The legacy model is described in SpaceXpansesdk\doc\APIGuide.pdf, Chapter 2.1 “Planet texture maps”.
+
+= {{anchor|RefHeadingToc20998874803680}} {{anchor|RefNumPara8242886699231}} The file layout =
+
+The files which describe the surface and cloud layer of a planetary body are located in a subdirectory
+
+<div style="margin-left:0.1965in;margin-right:0in;">Textures\<''planet name''></div>
+
+relative to the SpaceXpanse root directory, where <''planet name''> is a place holder for the name of the celestial body, e.g. Textures\Earth.
+
+The folder for each celestial body contains one or several sub-folders for various ''layers''. Currently SpaceXpanse supports the following layers:* SurfSurface textures
+* MaskWater masks and night light textures
+* ElevSurface elevation maps
+* Elev_modSurface elevation modifiers
+* LabelLabels for surface features
+* CloudCloud textures
+
+
+
+Only the Surf layer is required. All other layers are optional.
+
+The files for each layer are arranged in a hierarchical quad-tree that is reflected by the folder structure within each layer.
+
+Each layer can be represented by multiple resolution levels (≥ 1) up to a maximum level of currently 19. The different resolution levels are split into subdirectories represented by 2-digit folder names. For example,
+
+<div style="margin-left:0.1965in;margin-right:0in;">Textures\Earth\Surf\08</div>
+
+contains the level-8 surface textures for Earth.
+
+Each resolution level is further subdivided into latitude bands (≥ 0), represented by 6-digit subdirectories, e.g.
+
+<div style="margin-left:0.1965in;margin-right:0in;">Textures\Earth\Surf\08\000005</div>
+
+contains the surface textures for latitude band 5 at resolution 8. The range of latitude bands ''ilat'' depends on the resolution level ''n'':
+
+<div style="margin-left:0.1965in;margin-right:0in;">0 ≤ ''ilat'' ≤ ''nlat'' − 1 with ''nlat'' = 2''n−''4 (''n'' ≥ 4)</div>
+
+where ''ilat'' = 0 contains the northernmost latitude band, and ''ilat'' = ''nlat'' − 1 contains the southernmost latitude band.
+
+Each latitude band subfolder contains the files for the tiles of that latitude band. Each file has a 6-digit file name representing the longitude index of the file, and an extension depending on the layer type. The range of longitude indices (''ilng'') also depends on the resolution level:
+
+0 ≤ ''ilng'' ≤ ''nlng'' − 1 with ''nlng'' = 2n−3 (n ≥ 4)
+
+where ''ilng'' = 0 contains the westernmost longitude tile (left edge at longitude 180°W), and ''ilng'' = ''nlng'' − 1 contains the easternmost longitude tile (right edge at longitude 180°E).
+
+For example the Earth surface texture tile for resolution level 8, latitude index 5 and longitude index 7 is located in
+
+Textures\Earth\Surf\08\000005\000007.dds
+
+= {{anchor|RefHeadingToc656258318171}} {{anchor|RefNumPara8262886699231}} The quadtree structure =
+
+The planet surface is divided into ''tiles'' along latitude and longitude boundaries. Each tile at resolution level n can be divided into 2×2 sub-tiles at resolution level ''n'' + 1. Each tile can therefore be represented as a ''node'' in a quadtree structure with one parent (except for the root tiles) and up to four children.
+
+The root of the tile quadtree consists of two tiles at resolution level 4:
+
+Textures\<''planet name''>\<''layer''>\04\000000\000000.<''ext''>
+
+Textures\<''planet name''>\<''layer''>\04\000000\000001.<''ext''>
+
+where file 04\000000\000000.<''ext''> contains the western hemisphere (−180° ≤ ''lng'' ≤ 0° and −90° ≤ ''lat'' ≤ +90°), and file 04\000000\000001.<''ext''> contains the eastern hemisphere (0° ≤ ''lng'' ≤ +180° and −90° ≤ ''lat'' ≤ +90°).
+
+The area covered by tile 04\000000\000000.<''ext''> can be split into four subtiles at level 5:
+
+Textures\<''planet name''>\<''layer''>\05\000000\000000.<''ext''>
+
+Textures\<''planet name''>\<''layer''>\05\000000\000001.<''ext''>
+
+Textures\<''planet name''>\<''layer''>\05\000001\000000.<''ext''>
+
+Textures\<''planet name''>\<''layer''>\05\000001\000001.<''ext''>
+
+In general, a tile at resolution level ''n'' with latitude and longitude indices [''n'', ''ilat'', ''ilng''] has subtiles
+
+[''n'' + 1, 2 ''ilat'', 2 ''ilng''][''n'' + 1, 2 ''ilat'', 2 ''ilng'' + 1]
+
+[''n'' + 1, 2 ''ilat'' + 1, 2 ''ilng''][''n'' + 1, 2 ''ilat'' + 1, 2 ''ilng'' + 1]
+
+at resolution level ''n'' + 1.
+
+The latitude and longitude range covered by tile [''n'', ''ilat'', ''ilng''] is given by
+
+<math>-180\circ +\frac{360\circ }{\mathit{nlng}}\mathit{ilng}\phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}\mathit{lng}\phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}-180\circ +\frac{360\circ }{\mathit{nlng}}\left(\mathit{ilng}+1\right),\phantom{\rule{4em}{0ex}}\mathit{nlng}\phantom{\rule{0.5em}{0ex}}=\phantom{\rule{0.5em}{0ex}}{2}^{n-3}</math>
+
+<math>90\circ -\frac{180\circ }{\mathit{nlat}}\left(\mathit{ilat}+1\right)\phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}\mathit{lat}\phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}90\circ -\frac{180\circ }{\mathit{nlat}}\mathit{ilat},\phantom{\rule{4em}{0ex}}\mathit{nlat}\phantom{\rule{0.5em}{0ex}}=\phantom{\rule{0.5em}{0ex}}{2}^{n-4}</math>
+
+For example, tile [''n'' = 8, ''ilat'' = 5, ''ilng'' = 7] spans the area
+
+<math>22.5\circ \phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}\mathit{lat}\phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}33.75\circ ,\phantom{\rule{4em}{0ex}}-101.25\circ \phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}\mathit{lng}\phantom{\rule{0.5em}{0ex}}\le \phantom{\rule{0.5em}{0ex}}-90\circ </math>
+
+[[Image:.png|thumb|right|top|''Figure 1: Quadtree tile subdivision and child tiles at the next resolution level.'']]Resolution levels 1, 2 and 3 are not part of the quadtree. They cover the entire planet surface at different resolution levels. For example, for the Surf layer, tile 01\000000\000000.dds contains the planet surface as a 128×128 pixel texture, 02\000000\000000.dds contains the planet surface as a 256×256 pixel texture, and 03\000000\000000.dds contains the planet surface as a 512×512 pixel texture.
+
+The quadtree doesn’t need to be populated completely. Missing tiles are interpolated by SpaceXpanse from a sub-area of an ancestor tile. The quadtree is also allowed to contain gaps, that is, it can contain high-resolution tiles of an area (e.g. a surface base) even if some of the ancestor tiles are missing from the tree, so that there is no unbroken chain to the quadtree root.
+
+The minimum requirement is the presence of all tiles for resolution levels 1 to 4 for a given layer, i.e. the global tiles (level 1–3) and the quadtree root (level 4) must be present. All higher resolution quadtree tiles are optional. The maximum currently supported resolution level is 17 for elevation layers (Elev and Elev_mod), and level 19 for all other layers.
+
+= {{anchor|RefHeadingToc658258318171}} Layer types =
+
+The following layer types are currently supported by SpaceXpanse:
+
+== {{anchor|RefHeadingToc660258318171}} Surf layer ==
+
+The Surf layer contains the surface texture of a planet, where the file for each tile is a 512×512 pixel bitmap in DXT1 format (no transparency). You can for example use the Utils\DxTex.exe (DirectX Texture Tool) utility to convert a bitmap to DXT1 format. You can also use the Utils\plsplit64.exe utility to convert a planetary map in cylindrical projection to a set of files at a given resolution level.
+
+== {{anchor|RefHeadingToc662258318171}} Mask layer ==
+
+The Mask layer contains the planet water mask (for rendering specular reflection of water surfaces) and night light texture, if applicable, in a combined 512×512 pixel DXT1 texture file (1-bit transparency). The RGB channels of the texture provide the night light information, while the 1-bit alpha channel provides the water mask (alpha = 0: water, alpha = 1: land). Due to a limitation of the DXT1 format, pixels with alpha = 0 do not contain RGB information. Therefore, night lights cannot be defined on water surfaces.
+
+A planet with neither night lights nor specular reflection surfaces does not need to provide a Mask layer.
+
+== {{anchor|RefHeadingToc664258318171}} Elev layer ==
+
+The Elev layer contains files defining the surface elevation of a tile in a custom format (<nowiki>*.elv</nowiki>, see Chapter 8). Planets which do not define an Elev layer are represented as spheres.
+
+== {{anchor|RefHeadingToc666258318171}} Elev_mod layer ==
+
+The Elev_mod layer allows to modify tile elevations without the need to modify the original Elev files. The Elev_mod layer can be used e.g. for editing the elevations at surface bases (flattening runways, etc.). The files are in a custom format (<nowiki>*.elv</nowiki>, see Chapter 8). A tile in the Elev_mod layer can only modify an existing tile in the Elev layer, not create a new tile. Therefore, for each tile in the Elev_mod layer, the corresponding tile in the Elev layer must exist.
+
+== {{anchor|RefHeadingToc694258318171}} Cloud layer ==
+
+The Cloud layer contains the tiles for a global cloud layer in 512×512 pixel DXT5 format, containing colour and transparency information. Planets without clouds don’t define this layer.
+
+== {{anchor|RefHeadingToc696258318171}} Label layer ==
+
+The Label layer contains positions and labels for surface features such as cities, mountains, craters, landing sites, etc. See Chapter 9for details.
+
+= {{anchor|RefHeadingToc698258318171}} Planet configuration =
+
+To configure a planet for use of the new surface texture format, its configuration file
+
+Config\<''planet name''>.cfg
+
+must contain the following line:
+
+TileFormat = 2
+
+If missing, the legacy format is assumed. Likewise, if a cloud layer is present and is defined in the new format, the configuration file must contain
+
+CloudFormat = 2
+
+otherwise a cloud layer defined in the legacy format is assumed.
+
+The MaxPatchResolution tag can be used to specify the maximum resolution level SpaceXpanse will use for rendering the planet surface. This can be higher than than the maximum resolution defined in the texture quadtree, in which case SpaceXpanse interpolates the missing high-resolution tile from the highest available resolution ancestor tile. This can be useful for providing a smoother surface representation (in particular for elevation data). The maximum supported value is 19. If the MaxPatchResolution value is set to less than the highest resolution level supported by quadtree nodes, then the higher resolution tiles are not used for rendering.
+
+Likewise, the MaxCloudResolution tag can be used to specify the maximum resolution level for cloud tiles (the MinCloudResolution tag should always be set to 1).
+
+= {{anchor|RefNumPara10732310644150}} {{anchor|RefHeadingToc9062886699231}} Compressed archive layer format =
+
+The quadtree tile format described in Chapters 2and 3consists of individual files for each tile. This can lead to a very large number of files and a complex directory structure, which is often not desirable. Therefore, SpaceXpanse alternatively supports a compressed archive layer format, where all files for a given planet and layer are merged into a single file.
+
+The archive files can exist alongside the directory tree containing the individual tile files (the “cache”). SpaceXpanse can be configured to read only from the cache, only from the archive, or from both (first trying the cache, then the archive). To set these preferences, use the
+
+Extra | Visualisation parameters | Planet rendering options | Tile sources
+
+controls in the SpaceXpanse Launchpad dialog (for the inline graphics version), or the corresponding client-specific controls for external graphics clients.
+
+Compressed archive files have a custom format. They consist of a header, a table of contents (TOC) representing the tree structure, and the compressed and concatenated tile files. Archive files have the extension .tree (to signify that they contain quadtree data). They are located in
+
+Textures\<''planet name''>\Archive
+
+with
+
+Surf.treeSurf layer
+
+Mask.treeWater mask and night light layer
+
+Elev.treeElevation layer
+
+Elev_mod.treeElevation modification layer
+
+Cloud.treeCloud layer
+
+== {{anchor|RefHeadingToc9082886699231}} The .tree file format ==
+
+A layer archive (.tree) file consists of a header, TOC and compressed node data. The file header has the following format:
+
+<div style="margin-left:0.1965in;margin-right:0in;"><span style="color:#3465a4;">struct</span> ZtreeHeader {</div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">BYTE</span> magic[4];      <span style="color:#127622;">// file ID and version (‘T’, ‘X’, 1, 0)</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> size;         <span style="color:#127622;">// header size [bytes] (48)</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> flags;        <span style="color:#127622;">// bit flags (currently ignored)</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> dataOfs;      <span style="color:#127622;">// data block offset (header + TOC)</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">__int64</span> dataLength; <span style="color:#127622;">// total length of compressed data block</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> nodeCount;    <span style="color:#127622;">// total number of tree nodes</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> rootPos1;     <span style="color:#127622;">// index of level-1 tile</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> rootPos2;     <span style="color:#127622;">// index of level-2 tile</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> rootPos3;     <span style="color:#127622;">// index of level-3 tile</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">DWORD</span> rootPos4[2];  <span style="color:#127622;">// index of level-4 tiles (quadtree roots)</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">};</div>
+
+where dataOfs specifies the offset of the data block from the file start (= size of header + table of contents), dataLength is the size of the data block (= file size − dataOfs) and nodeCount is the number of entries in the TOC.
+
+rootPos1, rootPos2, rootPos3 are the indices of the level 1, 2 and 3 tiles in the TOC, respectively, and rootPos4 are the indices of the two level 4 quadtree roots in the TOC. If any of these is not present in the TOC, the value is set to (DWORD)−1.
+
+The header is followed by the TOC, consisting of a list of nodeCount quadtree node descriptors. A descriptor is given by
+
+<div style="margin-left:0.1965in;margin-right:0in;">struct TreeNode {</div>
+<div style="margin-left:0.1965in;margin-right:0in;">  <span style="color:#3465a4;">__int64</span> pos;    <span style="color:#127622;">// file position of node data</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  DWORD size;     <span style="color:#127622;">// data block size [bytes]</span></div>
+<div style="margin-left:0.1965in;margin-right:0in;">  DWORD child[4]; <span style="color:#127622;">// array index positions of the children</span></div>
+};
+
+where pos is the node’s data position in the file relative to the beginning of the data block, size is the node’s decompressed data size, and child contains the indices of the four descendants, where (DWORD)−1 terminates the branch.
+
+The compressed data size of node ''i'' can be inferred from node[i+1].pos − node[i].pos, where node[i+1].pos must be replaced with dataLength for the last node.
+
+Note that the TOC may contain nodes without data block, if they are required to provide connectivity across gaps to higher-resolution descendants. The uncompressed size of such dummy nodes is set to 0.
+
+The TOC is followed by the compressed node data, following the same order as the TOC. The data for each node are compressed individually, using the zlib “deflate” method with Z_DEFAULT_COMPRESSION setting, essentially providing a gz compression format for each individual data block.
+
+= {{anchor|RefHeadingToc11694161180312}} Utilities =
+
+The Utils folder contains some tools to assist with planetary texture management and editing.
+
+== {{anchor|RefHeadingToc11714161180312}} tileedit ==
+
+Utils\tileedit.exe is a tile viewer that is useful for navigating the tile quadtree. It can display multiple layers side by side, and has some basic editing capabilities for elevation tiles.
+
+[[Image:Image1.png]]Tileedit can be configured to read from the quadtree cache or from a compressed archive (under File | Configure). Any modifications are always written as individual tiles into the cache directory structure. Therefore, changes will only be visible in SpaceXpanse if it uses the cache (see Chapter 6), unless the changes are merged into the archive afterwards (see Chapter 7.3).
+
+After launching tileedit, select a planet with File | Open and navigate to the root folder of a planet texture directory, for example
+
+<div style="margin-left:0.1965in;margin-right:0in;">Textures\Earth</div>
+
+Then click Select Folder. This will open the Earth textures at the lowest resolution (level 1). The three map panels will show three surface layers, e.g. Surface, Elevation and water mask. Note that some layers may not be defined at level 1, and show a black square.
+
+=== Navigation ===
+
+Move the mouse over one of the map panels until it is surrounded by a red square. Click on it to proceed to the next higher level. At level 3 you can click on the western or eastern hemisphere to progress to one of the level 4 tiles. At higher levels you can click on one of the four quadrants to proceed to a child tile.
+
+Moving the mouse to the centre of the image until an “X” appears and clicking will return to the parent tile.
+
+Moving the mouse towards one of the edges until an arrow appears and clicking will move the view to the corresponding neighbour tile.
+
+You can also select a tile directly by entering the resolution level, latitude and longitude index in the index fields at the top left.
+
+Note that tileedit will display a representation of the selected tile even if there is no file for that tile. Tileedit then interpolates a sub-region of an ancestor tile. You can see the tile designation in the top left corner of the map panel when the mouse is hovering over it, e.g 16\000887\004095 . If the map was synthesized from an ancestor tile, the source tile is displayed below it in brackets, e.g. [13\000110\000511].
+
+=== Layer selection ===
+
+You can select different layers from the drop-down box above each of the map panels.
+
+=== Elevation editing ===
+
+Tileedit allows to modify elevation data.* Navigate to the tile you want to modify
+* Make sure that one of the map panels shows the elevation layer
+* Under the Action tab in the user interface area, click the Edit elevation icon.
+* Pick one of the paint modes, and adjust any option-specific parameters
+* Move the mouse over the elevation image and click to start drawing
+
+
+
+Changes will be written to the Elev_mod layer rather than the original Elev layer. Having the Elevation_mod layer open next to the Elevation layer can give a better of what parts of the map have been modified. Note that the Elevation map shows the modifications merged with any unmodified parts of the original map.
+
+You can edit the elevation layer even by clicking in a different map panel (e.g. the Surface map). This gives better control for synchronising elevation modifications with surface features, e.g. for flattening a runway or similar. Cross hairs appear on all three map panels when in editing mode to provide an additional visual cue.
+
+You can undo all modifications to an elevation tile by deleting the corresponding file in the Elev_mod layer cache directory.
+
+== {{anchor|RefHeadingToc11734161180312}} plsplit ==
+
+Utils\plsplit.exe is an interactive command line utility that allows a planetary surface bitmap to be split into individual tile files at a specific resolution level.
+
+The user must provide the surface bitmap in BMP (24-bit) format at the correct resolution. To generate multiple resolution levels, plsplit must be run multiple times with surface bitmaps at the corresponding resolutions.
+
+The source bitmap must represent the global planet surface or a rectangular sub-area in cylindrical projection (longitude along horizontal axis, latitude along vertical axis). If the entire planet surface is to be processed from a single bitmap, the bitmap must cover longitude from −180° (left edge) to +180° (right edge) and latitude from −90° (bottom edge) to +90° (top edge).
+
+To create a level-4 tile set, the source bitmap for global coverage must be 1024×512 pixels in size. For each subsequent resolution level, the bitmap must double in size both horizontally and vertically.
+
+In practice, start with the highest resolution supported by your source map. If the size of the map is not a power of 2, use an image editing tool to interpolate to the closest power of 2. Then repeat reducing the size of the bitmap by a factor of 2 using an image editing tool to create the next lower level all the way to level 4 (1024×512). Levels 3, 2 and 1 must be created from source maps 512×512, 256×256 and 128×128, respectively.
+
+If the planet surface contains water areas with specular reflections or night lights, the corresponding source bitmaps for these must also be provided to plsplit in the same sizes as the surface map.
+
+== {{anchor|RefHeadingToc11754161180312}} {{anchor|RefNumPara11784161180312}} texpack ==
+
+Utils\texpack.exe is a command line utility which packs individual tile files from the cache directory tree into a compressed archive and stores it in the Archive subfolder of the planet texture directory. Please be aware that for very large tile trees the packing operation can take a long time (several hours).
+
+= {{anchor|RefHeadingToc37044161180312}} {{anchor|RefNumPara108051726314528}} Elevation tile file format =
+
+SpaceXpanse uses a custom file format (*.elv) for encoding tile elevation data. The data file uses a binary format consisting of a header and the raw elevation data.
+
+[[Image:.png|thumb|right|top|''Figure 2: Tile elevation grid and surface cover'']]Each tile file represents a 259×259 grid of elevation points (with row and column indices 0–258). Column 1 represents the left edge of the tile, column 257 represents the right edge of the tile. Columns 0 and 258 are padding and are used for computing surface normals at the edges. This means that columns 0, 1 and 2 are shared with the left neighbour, and columns 256, 257 and 258 are shared with the right neighbour. The same is true for the top and bottom neighbours. The values stored for the shared nodes must be consistent between neighbouring tiles, otherwise edge artefacts can occur.
+
+The file header has the following structure:
+
+<span style="color:#3465a4;">struct</span> ELEVFILEHEADER { <span style="color:#127622;">// file header for patch elevation file</span>
+  <span style="color:#3465a4;">char</span> id[4];           <span style="color:#127622;">// ID string + version (‘E’,‘L’,‘E’,1)</span>
+  <span style="color:#3465a4;">int</span> hdrsize;          <span style="color:#127622;">// header size (100 expected)</span>
+  <span style="color:#3465a4;">int</span> dtype;            <span style="color:#127622;">// data format (0=flat, no data block;</span>
+                        <span style="color:#127622;">// 8=uint8, -8=int8, 16=uint16, -16=int16)</span>
+  <span style="color:#3465a4;">int</span> xgrd,ygrd;        <span style="color:#127622;">// data grid size (259 x 259 expected)</span>
+  <span style="color:#3465a4;">int</span> xpad,ypad;        <span style="color:#127622;">// horizontal, vertical padding width</span>
+                        <span style="color:#127622;">// (1, 1 expected)</span>
+  <span style="color:#3465a4;">double</span> scale;         <span style="color:#127622;">// data scaling factor</span>
+  <span style="color:#3465a4;">double</span> offset;        <span style="color:#127622;">// data offset (elevation =</span>
+                        <span style="color:#127622;">// raw value * scale + offset)</span>
+  <span style="color:#3465a4;">double</span> latmin,latmax; <span style="color:#127622;">// latitude range [rad]</span>
+  <span style="color:#3465a4;">double</span> lngmin,lngmax; <span style="color:#127622;">// longitude range [rad]</span>
+  <span style="color:#3465a4;">double</span> emin,emax,emean; <span style="color:#127622;">// min, max, mean elevation [m]</span>
+};
+
+This is followed by the 259×259 node data in row format, starting from the bottom left corner (min. longitude, min. latitude). The representation of the data entries depends on the dtype entry in the header file:
+
+<div style="margin-left:1.0236in;margin-right:0in;">dtype = 0file contains no node data. All nodes have the elevation specified by the offset value.</div>
+
+<div style="margin-left:1.0236in;margin-right:0in;">dtype = 8node data are provided in unsigned char (8-bit) values.</div>
+
+<div style="margin-left:1.0236in;margin-right:0in;">dtype = -16node data are provided in signed short (16-bit little-endian) values.</div>
+
+dtypes -8 and 16 are not currently used.
+
+In all cases, the data are in units of meters [m]. The scale value defines the height resolution of the elevation data. Currently, the following restrictions exist for scale values:* All elevation tiles of a planet’s elevation layer should have the same scale value.
+* Scale values should be 2''n'' (integer ''n'')
+
+
+
+The elevations ''h'' are computed from the raw file data ''z'' with
+
+<div style="text-align:center;"><math>h\phantom{\rule{0.5em}{0ex}}=\phantom{\rule{0.5em}{0ex}}z\cdot \mathit{scale}+\mathit{offset}</math></div>
+
+The ''h'' represents elevations relative to the planet mean radius.
+
+[[Image:.png|thumb|''Figure 3: 67×67 subgrid selection from a grandparent elevation tile.'']]The files in the Elev_mod layer, if present, use the same file format, except that the data block can contain mask flags for individual elevation points to signify that this point is not to be modified. The mask flags are
+
+dtype = 8:mask = UCHAR_MAX
+
+dtype = -16:mask = SHRT_MAX
+
+Note that the 259×259 grid elevation tile resolution is higher than the mesh patch resolution used by SpaceXpanse for that tile (which can be user-defined). If the patch resolution has been set to 64×64 (corresponding to 67×67 including edges and padding) then SpaceXpanse will query a subset of the tile’s grandparent node to retrieve the mesh elevation data for that tile. This arrangement allows to reduce the number of files required for the elevation layer.
+
+= {{anchor|RefHeadingToc15663783353203}} {{anchor|RefNumPara108071726314528}} Label tile format =
+
+Files in the Label quadtree layer are text files in UTF-8 format and have file extension .lab.
+
+Each label file contains the position and labels of surface features within the confines of the corresponding tile to be displayed at a given resolution level when the user enables surface labels in ''Planetarium'' mode (Ctrl-F9) in SpaceXpanse.
+
+Each line in the file describes one label. The format for each label entry is
+
+<div style="margin-left:0.1965in;margin-right:0in;"><''type-id''> <''latitude''> <''longitude''> <''elevation''> <''label''></div>
+
+where <t''ype-id''> is a character defining the feature type, <''latitude''> and <''longitude''> are the feature’s centre coordinates in degrees, <''elevation''> is the feature’s elevation relative to the planet reference radius in metres, and <''label''> is a string describing the feature.
+
+<''elevation''> can be set to NaN, in which case SpaceXpanse computes the elevation from its terrain elevation data. This should be avoided if possible to reduce computational cost.
+
+The resolution level at which a label appears in the quadtree determines the camera distance at which it appears in the SpaceXpanse render window. By moving a label to a lower resolution level it becomes visible at a greater distance. For example, large cities should be entered at a lower resolution level than small villages.
+
+Note that in order to reduce the number of quadtree nodes, SpaceXpanse shifts the resolution visibility by four levels. That is, a label entered in a level-2 tile will become visible when the corresponding level-6 tile is rendered.
+
+A label tile file should only contain labels at positions covered by the tile. For example, file
+
+<div style="margin-left:0.1965in;margin-right:0in;">Label\05\000000\000001.lab</div>
+
+should only contain features with positions 0° ≤ ''lat'' ≤ 90° and -90° ≤ ''lng'' ≤ 0°.
+
+To enable the Label layer, the planet’s configuration file (Config\<''planet-name''>.cfg) must contain the line
+
+<div style="margin-left:0.1965in;margin-right:0in;">LabelFormat = 2</div>
+
+otherwise the legacy label format is assumed.
+
+A label layer for a planet must be accompanied by a label legend file
+
+<div style="margin-left:0.1965in;margin-right:0in;">Config\<''planet-name''>\Label.cfg</div>
+
+in UTF-8 format. Each line in the legend file describes a label type, with the format
+
+<div style="margin-left:0.1965in;margin-right:0in;"><''type-id''> <''default-visible''> <''marker-id''> <''r''> <''g''> <''b''> <''type-name''></div>
+
+where <''type-id''> is a character defining the feature type, corresponding to the IDs in the quadtree label files, <''default-visible''> is one of the characters ‘x’ (visible by default) or ‘o’ (not visible by default), <''marker-id''> is a character defining the marker shape: ‘S’ (square, □), ‘O’ (circle, ○), ‘D’ (Delta, Δ) or ‘N’ (Nabla, ∇). <''r''>, <''g''> and <''b''> are the red, green and blue components (0–255) of the label display colour, and <''type-name''> is a string describing the label type.
+
+The user can activate and deactivate the display of specific label types by opening the Planetarium dialog (Ctrl-F9) in SpaceXpanse, enabling ''Surface Markers'', and opening the ''Surface Marker Config'' list to select label types.
+
+Note that Surface base and Navaid markers are currently not included in the quadtree Label layer. They are generated automatically from parsed Base configuration files and the navaid list in the planet’s configuration file.
+
+= {{anchor|RefHeadingToc15683783353203}} Converting surface base tiles =
+
+The main difference in the definition of surface bases between SpaceXpanse releases 2010 and 2016 is the fact that base tiles (surface textures that provide high-resolution texture content in the vicinity of the base) are no longer supported. Base tiles must now be defined directly in the planet’s tile quadtree structure.
+
+The legacy base tile format consisted of individual tile files in the Textures folder with the naming format
+
+<div style="margin-left:0.1965in;margin-right:0in;"><''planet-name''>_<''res''>_<''lng-id''>_<''lat-id''>.dds</div>
+
+where <''res''> defines the base tile resolution ''m'' (≥ 1), <''lng-id''> is the langitude identifier string, starting with ‘W’ (west) or ‘E’ (east) followed by a 4-digit index (≥ 0), and <''lat-id''> is the latitude identifier string, starting with ‘N’ (north) or ‘S’ (south) followed by a 4-digit index (≥ 0), e.g.
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth_2_W0462_N0161.dds</div>
+
+The relationship between the base tile resolution designation ''m'' and the quadtree resolution level ''n'' is given by
+
+<div style="margin-left:0.1965in;margin-right:0in;">''n'' = ''m'' + 12</div>
+
+At base tile resolution level ''m'', the global planet surface map can be considered to be divided into a grid of 2''m''+9 longitude strips and 2''m''+8 latitude strips, with longitude ID strings (from 180°W to 180°E)
+
+[W2''m''+8, ... , W0001, E0000, E2''m''+8−1]
+
+and latitude ID strings (from 90°S to 90°N)
+
+[S2''m''+7, ... , S0001, N0000, N2''m''+7−1]
+
+(Note that there are no base tile designations W0000 or S0000). Therefore, mapping base tile longitude designations to quadtree longitude indices is given by:
+
+Western hemisphere: W''x''  2''m''+8 − ''x''
+
+<div style="margin-left:0.1965in;margin-right:0in;">Eastern hemisphere: E''x''  2''m''+8 + ''x''</div>
+
+and mapping base tile latitude designations to quadtree latitude indices is given by:
+
+Northern hemisphere: N''x''  2''m''+7 − 1 − ''x''
+
+Southern hemisphere: S''x''  2''m''+7 − 1 + ''x''
+
+For example, base tile Earth_2_W0462_N0161.dds would translate to quadtree tile
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth\Surf\14\000350\000562.dds</div>
+
+Note that the surface tiles in the quadtree are expected to be size 512×512. The base tiles may be present in various resolutions. This has to be taken into account during the conversion. For example, if base tile Earth_2_W0462_N0161.dds is a 1024×1024 texture, it must be split into four 512×512 tiles which are then stored one level up in the quadtree:
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth\Surf\15\000700\001124.dds</div>
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth\Surf\15\000700\001125.dds</div>
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth\Surf\15\000701\001124.dds</div>
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth\Surf\15\000701\001125.dds</div>
+
+(A version of the original tile downsized to 512×512 should also be added as Earth\Surf\14\000350\000562.dds).
+
+If Earth_2_W0462_N0161.dds is a 256×256 texture, it can’t be directly converted into a quadtree tile. The following options are available:
+
+a) If the appropriate neighbour base tiles are available – in this case,
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth_2_W0463_N0161.dds,</div>
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth_2_W0462_N0160.dds,</div>
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth_2_W0463_N0160.dds,</div>
+
+they can be combined into a single 512×512 quadtree tile and stored one resolution level down, as
+
+<div style="margin-left:0.1965in;margin-right:0in;">Earth\Surf\13\000175\000281.dds.</div>
+
+b) The texture can be interpolated to size 512×512 using an image processing utility and then saved as a quadtree tile. This option is less than ideal because the tile is then lacking the high-frequency content supported at that resolution level.
+
+c) The 256×256 base tile can be copied into the appropriate quadrant of the original Earth\Surf\13\000175\000281.dds parent quadtree tile, if it exists.
+
+Note that the base tiles may need to be edited to colour-match the underlying lower-resolution quadtree tiles to provide a seamless transition. Histogram-matching algorithms can be useful here.

@@ -1,0 +1,34 @@
+BEGIN_HYPERDESC
+<h1>Dione</h1>
+<p>Dione with Saturn in the background and an edge-on view of the ring system.
+Red Titan is just visible above the plane of the rings.</p>
+END_HYPERDESC
+
+BEGIN_ENVIRONMENT
+  System Sol
+  Date MJD 51984.2101150602
+END_ENVIRONMENT
+
+BEGIN_FOCUS
+  Ship GL-01
+END_FOCUS
+
+BEGIN_CAMERA
+  TARGET Dione
+  MODE Extern
+  POS 12.31 90.72 178.81
+  TRACKMODE GlobalFrame
+  FOV 20.00
+END_CAMERA
+
+BEGIN_SHIPS
+ISS:ProjectAlpha_ISS
+  STATUS Orbiting Earth
+  RPOS 6085716.24 -2851053.71 -374551.80
+  RVEL -2965.694 -6665.450 2455.920
+  AROT 30.00 0.00 50.00
+  IDS 0:588 10 1:586 10 2:584 10 3:582 10 4:580 10
+  NAVFREQ 0 0
+  XPDR 466
+END
+END_SHIPS

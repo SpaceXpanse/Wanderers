@@ -1,0 +1,30 @@
+BEGIN_HYPERDESC
+<h1>Galilean system view</h1>
+<p>View of Europa, with Jupiter in the background and Io passing below.</p>
+END_HYPERDESC
+
+BEGIN_ENVIRONMENT
+  System Sol
+  Date MJD 51982.1067879861
+END_ENVIRONMENT
+
+BEGIN_FOCUS
+  Ship ISS
+END_FOCUS
+
+BEGIN_CAMERA
+  TARGET Europa
+  MODE Extern
+  POS 24.00 -84.67 -0.32
+  TRACKMODE TargetRelative
+  FOV 20.00
+END_CAMERA
+
+BEGIN_SHIPS
+ISS:ProjectAlpha_ISS
+  STATUS Orbiting Earth
+  ELEMENTS 6734919 0.0009 74.513 169.034 328.305 143.239 51544.5
+  AROT 30.00 0.00 50.00
+  DOCKINFO 1:0,SH-02
+END
+END_SHIPS

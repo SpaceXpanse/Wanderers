@@ -1,0 +1,608 @@
+'''Flight Recorder and Playback Technical Reference'''
+
+
+= Copyright (c) 2000-2007 Martin Schweiger =
+
+= Copyright (c) 2022-2023 SpaceXpanse =
+
+= SpaceXpanse home: [https://www.spacexpanse.org/ www.spacexpanse.org]  =
+
+
+
+
+
+Contents1Introduction[[#RefHeadingToc176687315|1]]
+
+'''2Sequence recording[[#RefHeadingToc176687316|1]]
+
+'''3Sequence playback[[#RefHeadingToc176687317|2]]
+
+'''4File formats[[#RefHeadingToc176687318|2]]
+
+<div style="margin-left:0.3937in;margin-right:0in;">4.1.Position and velocity data[[#RefHeadingToc176687319|2]]</div>
+
+<div style="margin-left:0.3937in;margin-right:0in;">4.2.Attitude data[[#RefHeadingToc176687320|3]]</div>
+
+<div style="margin-left:0.3937in;margin-right:0in;">4.3.Articulation data[[#RefHeadingToc176687321|4]]</div>
+
+<div style="margin-left:0.3937in;margin-right:0in;">4.4.Global events[[#RefHeadingToc176687322|6]]</div>
+
+'''5Recording and playback of vessel-specific events[[#RefHeadingToc176687323|7]]
+
+'''6Technical information[[#RefHeadingToc176687324|8]]
+
+<div style="margin-left:0.3937in;margin-right:0in;">6.1.State interpolation[[#RefHeadingToc176687325|8]]</div>
+
+<div style="margin-left:0.3937in;margin-right:0in;">6.2.Attitude interpolation[[#RefHeadingToc176687326|8]]</div>
+
+'''7Examples[[#RefHeadingToc176687327|8]]
+
+<div style="margin-left:0.3937in;margin-right:0in;">'''Appendix ASpaceXpanse reference frames[[#RefHeadingToc176687328|10]]</div>
+
+<div style="margin-left:0.3937in;margin-right:0in;">'''Appendix BCartesian and polar coordinates[[#RefHeadingToc176687329|10]]</div>
+
+
+
+= {{anchor|RefHeadingToc176687315}} Introduction =
+
+The purpose of this project is the extension of the standard SpaceXpanse functionality to allow the recording and playback of spacecraft trajectories. The format of the recording streams is public so that external applications such as trajectory optimisation programs can be used to generate the data streams, and to use SpaceXpanse as a visualisation tool for these pre-computed trajectories.
+
+The recorded data include position and velocity samples, attitude data samples, and articulation data which mark events such as engine levels, booster separation, animations, etc. Different data formats (e.g. different frames of reference) are supported to simplify the interfacing with external applications.
+
+Additions to the SpaceXpanse Programming Interface for recording and reading vessel-specific articulation data are provided to enable addon developers to add specific event types in the vessel module code.
+
+= {{anchor|RefHeadingToc176687316}} Sequence recording =
+
+Flight sequences can be recorded and played back later. Currently, recorded data for include for each spacecraft:
+
+
+* '''Position and velocity'''. At the moment, these data are recorded relative to the reference planet, either in a non-rotating reference system (ecliptic and equinox of J2000), or a rotating equatorial reference system. As a result, trajectories are currently recorded in an absolute time frame. Samples are written in regular intervals (currently 4 seconds) or if the velocity vector rotates by more than 5 degrees.
+* '''Attitude'''. Attitude data are saved in terms of the Euler angles of the spacecraft with respect to the ecliptic reference frame or local horizon frame. Samples are written whenever one of the angles has changed by more than a predefined threshold limit.
+* '''Articulation data'''. These include changes in thrust level of individual spacecraft engines, and custom events recorded by individual spacecraft modules, such as animations.
+
+
+
+
+
+In addition, global simulation events, such as changes in the recording speed or onscreen annotations, are stored separately.
+
+
+To start recording a flight sequence, launch an SpaceXpanse scenario and start the recorder by pressing Ctrl-C, or from the recorder dialog box (Ctrl-F5). The recording can be stopped by pressing Ctrl-C again or by terminating the simulation. Currently, all spacecraft in the scenario are recorded. Selective recording will be implemented later.
+
+= {{anchor|RefHeadingToc176687317}} Sequence playback =
+
+Each recording generates a new scenario under the “Scenarios\Playback” subdirectory, with the same name as the original scenario. The playback scenario defines the simulation state at the moment when the recording was started. The only difference between standard and playback scenarios is an additional entry “FLIGHTDATA” in each of the recorded spacecraft sections.
+
+Playback scenarios are launched like standard scenarios. On launch, a “Playback” indicator is displayed at the bottom of the simulation window. All spacecraft follow their recorded trajectories until the end of the recording sequence is reached or until playback is terminated by the user with Ctrl-C. At that point, SpaceXpanse’s own time propagation mechanism takes over again, and spacecraft return to user control.
+
+Position and attitude data are interpolated between the recorded samples during playback. The recorded articulation events are effective instantaneously.
+
+During playpack, the user can manipulate the camera views, switch between camera targets, and operate cockpit instruments such as the MFD displays.
+
+The playback speed (time compression) can either be controlled manually by the user, or set automatically from data tags in the articulation stream.
+
+= {{anchor|RefHeadingToc176687318}} File formats =
+
+All flight data are recorded under the “Flights” subdirectory. Each recording generates a new subdirectory with the name of the scenario. If the directory already exists, it is overwritten.
+
+
+Global simulation events, such as changes in time acceleration or camera view mode, or onscreen annotations, are recorded in file ''system.dat''. In addition, each recorded object generates three files, where <''object''> is the name of the vessel as defined in the scenario file:
+
+
+== {{anchor|RefHeadingToc176687319}} Position and velocity data ==
+
+'''<''object''>.pos'''
+
+Position and velocity data relative to a reference body. Each line contains either a data sample, or a format directive. The following directives are currently supported:
+
+
+STARTMJD <''mjd''>
+
+<div style="margin-left:0.3937in;margin-right:0in;">Defines an absolute time reference for the simulation start time. <''mjd''> is a floating point number defining the start date in MJD (Modified Julian Date) format. Only a single STARTMJD tag should be provided at the beginning of the stream. Note that this value is currently not used by the simulator, because the simulation start date is read from the corresponding scenario file.</div>
+
+
+REF <''reference''>
+
+<div style="margin-left:0.3937in;margin-right:0in;">Defines the reference object (planet, moon, sun) relative to which the following data samples are calculated. Whenever the trajectory enters the sphere of influence of a different object, another “REF” line should be added, and the following data samples computed with respect to the new object. <''reference''> must correspond to a celestial object defined in the SpaceXpanse planetary system. There is no default object, therefore a REF directive must appear at the beginning of the file before any data samples.</div>
+
+
+FRM [ECLIPTIC | EQUATORIAL]
+
+<div style="margin-left:0.3937in;margin-right:0in;">Orientation of the reference frame for all following data samples. This can be either the ecliptic of the J2000 epoch, or the (rotating) equatorial frame of the reference body. The default setting is “ECLIPTIC”.</div>
+
+
+CRD [CARTESIAN | POLAR]
+
+<div style="margin-left:0.3937in;margin-right:0in;">Coordinate and velocity data format for all following data samples. This can be either in rectangular cartesian format (''x'',''y'',''z'') [m] and <math>\left(\dot{x},\dot{y},\dot{z}\right)</math>[m/s], respectively, or in spherical polar coordinates (''r'','''','''') [m,rad,rad] and <math>\left(\dot{r},\dot{\phi },\dot{\theta }\right)</math>[m/s,rad/s,rad/s], respectively, with radial distance ''r'', polar angle '''' and azimuth angle ''''. If an equatorial frame is selected, '''' and '''' define equatorial longitude and latitude. See Appendix 2 for transformation conventions.</div>
+
+<div style="margin-left:0.3937in;margin-right:0in;">The default setting is “CARTESIAN”.</div>
+
+
+Any lines not containing one of the above directives are assumed to contain data samples, in the following format:
+
+
+<div style="margin-left:0in;margin-right:0in;"><''simt''> <''position''> <''velocity''></div>
+
+
+where :
+
+<div style="margin-left:1.1811in;margin-right:0in;"><''simt''>is the time since scenario start [s]</div>
+
+<div style="margin-left:1.1811in;margin-right:0in;"><''position''>is the object position w.r.t. the current reference object. Depending on the current “CRD” setting, this is a triplet of <''x''> <''y''> <''z''> cartesian coordinates [m], or a triplet of <''radius''> [m] <''longitude''> <''latitude''> [rad], in either ecliptic or equatorial reference frame.</div>
+
+<div style="margin-left:1.1811in;margin-right:0in;"><''velocity''>is the object velocity w.r.t. the current reference object. Depending on the current “CRD” setting, this is a triplet of <''vx''> <''vy''> <''vz''> rates in cartesian coordinates [m/s], or a triplet of <''radial velocity''> [m/s] <''longitude rate''> <''latitude rate''> [rad/s], in either ecliptic or equatorial reference frame.</div>
+
+
+== {{anchor|RefHeadingToc176687320}} Attitude data ==
+
+'''<''object''>.att'''
+
+Attitude data. Each line contains either a data sample, or a format directive. The following directive is currently supported:
+
+
+STARTMJD <''mjd''>
+
+<div style="margin-left:0.3937in;margin-right:0in;">Defines an absolute time reference for the simulation start time. <mjd> is a floating point number defining the start date in MJD (Modified Julian Date) format. Only a single STARTMJD tag should be provided at the beginning of the stream. Note that this value is currently not used by the simulator, because the simulation start date is read from the corresponding scenario file.</div>
+
+
+FRM [ECLIPTIC | HORIZON]
+
+<div style="margin-left:0.3937in;margin-right:0in;">Orientation of the reference frame for all following attitude data samples. This can either be the ecliptic of the J2000 epoch, or the local horizon of the current vessel position. The default setting is "ECLIPTIC".</div>
+
+
+REF <''reference''>
+
+<div style="margin-left:0.3937in;margin-right:0in;">Defines the reference object (planet, moon, sun) relative to which the following data samples are calculated. Note that a REF tag is required after each FRM HORIZON tag, to define the reference object for local horizon calculations, but is optional after a FRM ECLIPTIC tag, because the reference frame is globally fixed.</div>
+
+<div style="margin-left:0.3937in;margin-right:0in;">When using FRM HORIZON, the reference should usually be switched by inserting a new REF tag whenever the trajectory enters the sphere of influence of a different object.</div>
+
+
+Any lines not containing a directive are assumed to contain samples , in the following format:
+
+
+<''simt''> <''''> <''''> <''''>
+
+
+where:
+
+<div style="margin-left:0.7874in;margin-right:0in;"><''simt''> is the time since scenario start (seconds)</div>
+
+<div style="margin-left:0.7874in;margin-right:0in;"><''''> <''''> <''''> are the Euler angles of the local spacecraft frame with respect to the orientation of the reference frame.</div>
+
+
+Definition: Let
+
+<div style="margin-left:0in;margin-right:0in;"><math>R=\left\lbrack \begin{array}{ccc}{r}_{\text{11}}& 	{r}_{\text{12}}& 	{r}_{\text{13}}\\ 
+{r}_{\text{21}}& 	{r}_{\text{22}}& 	{r}_{\text{23}}\\ 
+{r}_{\text{31}}& 	{r}_{\text{32}}& 	{r}_{\text{33}}\end{array}\right\rbrack </math></div>
+
+be the rotation matrix that transforms from vessel frame to the reference frame (ecliptic or local horizon). 
+
+
+For the ecliptic frame, SpaceXpanse uses the following set of Euler angles:
+
+<div style="margin-left:0in;margin-right:0in;"><math>\alpha =\text{arctan}\frac{{r}_{\text{23}}}{{r}_{\text{33}}},\phantom{\rule{2em}{0ex}}\beta =-\text{arcsin}{r}_{\text{13}},\phantom{\rule{2em}{0ex}}\gamma =\text{arctan}\frac{{r}_{\text{12}}}{{r}_{\text{11}}}</math></div>
+
+For the local horizon frame, SpaceXpanse uses a different set of Euler angles:
+
+<div style="margin-left:0in;margin-right:0in;"><math>\alpha =\text{arctan}\frac{{r}_{\text{12}}}{{r}_{\text{22}}},\phantom{\rule{2em}{0ex}}\beta =\text{arcsin}{r}_{\text{32}},\phantom{\rule{2em}{0ex}}\gamma =\text{arctan}\frac{{r}_{\text{31}}}{{r}_{\text{33}}}</math></div>
+
+so that the Euler angles can be directly defined with the bank, pitch and yaw angles of the vessel in the local horizon frame:
+
+
+<div style="margin-left:0.4925in;margin-right:0in;">Bank angle '''': angle between the projection of the horizon normal into the vessel xy-plane, and the vessel "up" direction (0,1,0).</div>
+
+
+<div style="margin-left:0.4925in;margin-right:0in;">Pitch angle '''': angle between the projection of the horizon normal into the vessel yz-plane, and the vessel "up" direction (0,1,0).</div>
+
+
+<div style="margin-left:0.4925in;margin-right:0in;">Yaw angle '''': angle between the projection of the vessel "forward" direction (0,0,1) into the local horizon plane, and the horizon "north" direction.</div>
+
+== {{anchor|RefHeadingToc176687321}} Articulation data ==
+
+'''<''object''>.atc'''
+
+Articulation data. Each line contains a sample as follows:
+
+
+<div style="margin-left:0in;margin-right:0in;"><''simt''> <''tag''> [<''data''>]</div>
+
+
+where:
+
+
+<div style="margin-left:0.9846in;margin-right:0in;"><''simt''>is the time since scenario start (seconds)</div>
+
+<div style="margin-left:0.9846in;margin-right:0in;"><''tag''>identifies the event type. The generic event types currently supported by SpaceXpanse are listed below. In addition, vessel-specific event types can be directly implemented by the vessel module.</div>
+
+<div style="margin-left:0.9846in;margin-right:0in;"><''data''>Event-type specific data. Not all event types may require additional paramters.</div>
+
+
+=== Engine events ===
+
+Engine events are recorded with the “ENG” tag in the articulation stream. Engine event data consist of
+
+
+<div style="margin-left:0in;margin-right:0in;"><''engine id''>:<''level''></div>
+
+
+pairs, where <''engine id''> is either a zero-based integer index identifying the engine, or an engine group identifier string. <''level''> is the thrust level (range: 0-1). Integer engine identifiers can usually be obtained from the spacecraft DLL implementation. If groups of engines must be operated simultaneously, it is often more convenient to use group identifiers. The following group labels are supported:
+
+
+MAIN
+
+RETRO
+
+HOVER
+
+RCS_PITCHUP
+
+RCS_PITCHDOWN
+
+RCS_YAWLEFT
+
+RCS_YAWRIGHT
+
+RCS_BANKLEFT
+
+RCS_BANKRIGHT
+
+RCS_RIGHT
+
+RCS_LEFT
+
+RCS_UP
+
+RCS_DOWN
+
+RCS_FORWARD
+
+RCS_BACK
+
+
+How the engines are assembled in these groups depends on the vessel module code. Note that not all vessel types may support all of the logical groups listed above. Further, some engines may not be members of any group and therefore must be addressed by their individual integer id's.
+
+Not all engine levels need to be recorded with each sample, but the first and last entries of the file should contain all engines, to provide a fully defined initial and final state.
+
+
+=== Other generic events ===
+
+The following default event tags in the articulation stream are currently recognised by vessels in SpaceXpanse, and written to the atc stream during recording:
+
+
+
+{| style="border-spacing:0;width:5.8083in;"
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| RCSMODE <''mode''>
+|| Switch Reaction Control System mode to <''mode''>, where <''mode''> is an integer in the range 0...2. See the RCS_xxx constants defined in SpaceXpansesdk/include/SpaceXpanseAPI.h for a list of supported RCS modes.
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| ADCMODE <''mode''>
+|| Switch aerodynamic control mode to <''mode''>
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| NAVMODE <''mode''>
+|| Switch autonav mode to <''mode''>, where <''mode''> is an integer in the range 1...7. See the NAVMODE_xxx constants defined in SpaceXpansesdk/include/SpaceXpanseAPI.h for a list of supported nav modes. Note that some modes are exclusive, i.e. setting one may implicitly clear another mode.
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| NAVMODECLR <''mode''>
+|| Explicitly clear autonav mode <''mode''>.
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| UNDOCK <''dock''>
+|| Undock vessel attached at port <''dock''>
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| ATTACH <''vessel''> <''pidx''> <''cidx''> [LOOSE]
+|| Attach <''vessel''> as a child object. This event is written to the parent object’s ATC stream. <''pidx''> is the attachment index on the parent, <''cidx''> the attachment index on the child. If flag LOOSE is specified, the objects are attached at their current relative orientation. Otherwise, the predefined attachment orientation is enforced.
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| DETACH <''pidx''> [<''vel''>]
+|| Detach the child object currently attached at attachment point <''pidx''>. This event is written to the parent object’s ATC stream. An optional detachment velocity <''vel''> can be specified. By default, <vel>=0.
+
+
+|-
+|}
+== {{anchor|RefHeadingToc176687322}} Global events ==
+
+Simulation events which do not refer to a specific spacecraft are recorded in a separate file, ''system.dat''. The format is the same as for vessel .atc files:
+
+
+<''simt''> <''tag''> [<''data''>]
+
+
+The following global event tags are currently supported by SpaceXpanse, and written to ''system.dat'' during recording:
+
+=== Time acceleration events ===
+
+
+{| style="border-spacing:0;width:5.8083in;"
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| TACC <''acc''> [<''delay''>]
+|| Set time acceleration factor to <''acc''>. This tag is only written if the “Record time acceleration” option is enabled in the recorder dialog (Ctrl-F5). If the optional <''delay''> value is provided, the change in time acceleration is non-instantaneous. Instead, time acceleration changes by one order of magnitude per <delay> seconds.
+
+
+|-
+|}
+=== Input focus events ===
+
+
+{| style="border-spacing:0;width:5.8083in;"
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| FOCUS <''object''>
+|| Switch input focus to vessel <''object''>. Although manual control of spacecraft is largely disabled during playback, resetting the focus object does affect the playback behaviour (for example, only the focus object supports cockpit camera modes).
+
+This tag is only written if the "Record focus events" option is enabled in the recorder dialog.
+
+Recorded focus events are only used during playback if the "Use recorded focus events" option is enabled in the playback dialog.
+
+
+|-
+|}
+=== Camera events ===
+
+
+{| style="border-spacing:0;width:5.8083in;"
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| CAMERA PRESET <''n''>
+|| Switch to camera preset position <''n''>, where <''n''> is the zero-based index of a camera preset mode stored in the scenario. 
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| CAMERA SET <''param''>
+|| Switch camera to a mode defined by <''param''>. This tag allows inline camera mode definitions without the need for storing preset data in the scenario. The contents of <''param''> depend on the specific camera mode.
+
+
+|-
+|}
+=== Onscreen annotation events ===
+
+Playback sequences can be annotated with onscreen messages. The messages appear on top of the render window at the time defined in the playback stream. Some basic formatting (position, size and colour) are available.
+
+
+
+{| style="border-spacing:0;width:5.8083in;"
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| NOTE <''text''>
+|| Display <''text''> as an onscreen annotation.
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| NOTEOFF
+|| Remove the current annotation.
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| NOTEPOS <''x1''> <''y1''> <''x2''> <''y2''>
+|| Define the bounding box of the annotation area in units of the simulation window size:
+
+0  ''x1'' < ''x2''  1 and 0  ''y1'' < ''y2''  1.
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| NOTESIZE <''scale''>
+|| Reset the annotation font size (''scale'' > 0, where ''scale'' = 1 is the default size).
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| NOTECOL <''r''> <''g''> <''b''>
+|| 
+|-
+|}
+
+
+Annotations can be added by inserting NOTE tags manually into the articulation stream after the recording has been completed. The format is
+
+
+<div style="margin-left:0in;margin-right:0in;"><''simt''> NOTE <''text''></div>
+
+
+where <''text''> is the text of the note. The text must be entered as a single line, but will be displayed in multiple lines on screen as required. The notes must be sorted appropriately into the stream, so that all <''simt''> tags appear in increasing order. The text remains visible until it is replaced by a new note, or until it is explicitly removed with
+
+
+<div style="margin-left:0in;margin-right:0in;"><''simt''> NOTEOFF</div>
+
+
+or until the end of the replay sequence. Note that annotations can be displayed by all vessels in the playback scenario. However, in general notes should only be generated by the focus vessel to avoid confusion.
+
+
+The following formatting tags are available:
+
+
+<div style="margin-left:0in;margin-right:0in;"><''simt''> NOTEPOS <''x1''> <''y1''> <''x2''> <''y2''></div>
+
+<div style="margin-left:0.4925in;margin-right:0in;">defines the position of the rectangle where the note appears. All values are fractions of the simulation window size, in the range 0...1. <''x1''> and <''x2''> are the left and right edges of the note rectangle, <''y1''> and <''y2''> are the top and bottom edges. ''x1'' < ''x2'' and ''y1'' < ''y2'' are required. If the rectangle is set too small, part of the note may not be displayed.</div>
+
+
+<div style="margin-left:0.4925in;margin-right:0in;"><''simt''> NOTESIZE <''scale''></div>
+
+<div style="margin-left:0.4925in;margin-right:0in;">defines the size scale for the note text, where 1 denotes the default size. The actual text size is scaled with the simulation window size.</div>
+
+
+<div style="margin-left:0.4925in;margin-right:0in;"><''simt''> NOTECOL <''r''> <''g''> <''b''></div>
+
+<div style="margin-left:0.4925in;margin-right:0in;">defines the colour of the note text, where <''r''> <''g''> <''b''> are the red, green and blue components, respectively. Values must be in the range 0...1.</div>
+
+
+= {{anchor|RefHeadingToc176687323}} Recording and playback of vessel-specific events =
+
+Using SpaceXpanse’s Application Programming Interface (API) it is possible to record and play back events that are not recognised by the SpaceXpanse core. These may include animations like lowering or retracting landing gear, opening cargo bay doors, separating booster rockets, etc. 
+
+The API interface for recording and playback consists of two functions:
+
+
+void VESSEL::RecordEvent (const char *event_type, const char *event) const
+
+
+The vessel calls this function to record an event to the articulation stream. The record consists of an event type identifier (''event_type'') and the event itself (''event''). ''event_type'' must be a single word (no whitespace), while ''event'' can contain multiple items separated by spaces. SpaceXpanse only writes the event if a recording session is active. Otherwise the function call is ignored. The event appears in the stream in the format
+
+
+<''simt''> <''event_type''> <''event''>
+
+
+During a playback session, any events that are read from the articulation stream but contain an identifier not recognised by the SpaceXpanse core, are passed on to the vessel module via the callback function
+
+
+virtual bool VESSEL2::clbkPlaybackEvent (double simt, double event_t, const char *event_type, const char *event)
+
+
+where ''simt'' is the current simulation time, ''event_t'' is the time recorded with the event, ''event_type'' is the identifier for the event, and ''event'' is the recorded event data. An event is processed whenever the simulation time has moved past the recorded time stamp, therefore simt  event_t.
+
+
+Examples for vessel-specific custom articuation stream commands can be found in the source code of the “Delta-Space Glider”: SpaceXpansesdk/samples/DeltaSpace Glider/DeltaSpace Glider.cpp
+
+= {{anchor|RefHeadingToc176687324}} Technical information =
+
+== {{anchor|RefHeadingToc176687325}} State interpolation ==
+
+SpaceXpanse interpolates position and velocity vectors assuming piecewise linear acceleration. Let ''t''<sub>0</sub> and ''t''<sub>1</sub> be two consecutive samples, with recorded state vectors
+
+<div style="margin-left:0in;margin-right:0in;"><math>\begin{array}{c}r\left({t}_{0})={r}_{0}\phantom{\rule{2em}{0ex}}r\right({t}_{1})={r}_{1}\\ 
+v\left({t}_{0})={v}_{0}\phantom{\rule{2em}{0ex}}v\right({t}_{1})={v}_{1}\end{array}</math></div>
+
+To find the interpolated state at time ''t'' with ''t''<sub>0</sub>  ''t''  ''t''<sub>1</sub>, assume linear acceleration between ''t''<sub>0</sub> and ''t''<sub>1</sub>:
+
+<div style="margin-left:0in;margin-right:0in;"><math>a(t)={a}_{0}+\mathit{b\Delta t}</math></div>
+
+where ''t'' = ''t'' - ''t''<sub>0</sub>. To find ''a''<sub>0</sub> and ''b'' which satisfy the boundary conditions, we integrate the state vectors:
+
+<div style="margin-left:0in;margin-right:0in;"><math>\begin{array}{c}v(t)=\underset{0}{\overset{\mathit{\Delta t}}{\int }}a\left({t}^{\text{'}}\right)d{t}^{\text{'}}={v}_{0}+{a}_{0}\mathit{\Delta t}+\frac{1}{2}{\mathit{b\Delta t}}^{2}\\ 
+r(t)=\underset{0}{\overset{\mathit{\Delta t}}{\int }}v\left({t}^{\text{'}}\right)d{t}^{\text{'}}={r}_{0}+{v}_{0}\mathit{\Delta t}+\frac{1}{2}{a}_{0}{\mathit{\Delta t}}^{2}+\frac{1}{6}{\mathit{b\Delta t}}^{3}\end{array}</math></div>
+
+Substituting the boundary conditions at ''t''<sub>1</sub> and solving for ''a''<sub>0</sub> and ''b'' gives
+
+<div style="margin-left:0in;margin-right:0in;"><math>\begin{array}{c}{a}_{0}=\frac{2\left\lbrack 3\right({r}_{1}-{r}_{0})-\mathit{\Delta T}\left(2{v}_{0}+{v}_{1}\right)\rbrack }{{\mathit{\Delta T}}^{2}}\\ 
+b=\frac{6\left\lbrack 2\right({r}_{0}-{r}_{1})+\mathit{\Delta T}\left({v}_{0}+{v}_{1}\right)\rbrack }{{\mathit{\Delta T}}^{3}}\end{array}</math></div>
+
+with ''T'' = ''t''<sub>1</sub> – ''t''<sub>0</sub>.
+
+
+== {{anchor|RefHeadingToc176687326}} Attitude interpolation ==
+
+Currently, spacecraft orientations are interpolated linearly between attitude samples, resulting in piecewise constant angular velocities. The interpolation is implemented by transforming the recorded Euler angle data into a quaternion representation, and performing a spherical interpolation between pairs of quaternion samples.
+
+The attitude data stream should provide sufficiently dense sampling so that noticeable jumps in angular velocity are avoided.
+
+SpaceXpanse’s built-in recording module writes a sample to the attitude stream* when the orientation has changed by more than 0.06 rad since the last sample, or 
+* when the orientation has changed by more than 0.001 rad and no sample has been written for more than 0.5 seconds.
+
+
+
+= {{anchor|RefHeadingToc176687327}} Examples =
+
+Some recorded examples are provided to demonstrate the playback features in SpaceXpanse, and the data stream formats. The examples can be found in the Playback scenario folder, and are executed by running SpaceXpanse with the appropriate scenario. The corresponding data streams can be found under the Flights folder.
+
+
+'''Space Glider launch 1:'''
+
+<div style="margin-left:1.2799in;margin-right:0in;">Scenario:Space Glider takeoff and landing.</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Attitude stream:Ecliptic frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Pos/vel stream:Geocentric cartesian coordinates in ecliptic frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Articulation stream:Exhaust rendering, animations (landing gear, airbrakes)</div>
+
+
+'''Space Glider launch 2:'''
+
+<div style="margin-left:1.2799in;margin-right:0in;">Scenario:Space Glider takeoff and landing.</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Attitude stream:Local horizon frame of reference.</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Pos/vel stream:Geocentric polar coordinates in equatorial frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Articulation stream:Exhaust rendering, animations (landing gear, airbrakes)</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Notes:Demonstrates use of horizon frame of reference, where attitude data are provided in terms of bank, pitch and yaw angle of local horizon plane.</div>
+
+'''Space Glider in orbit 1:'''
+
+<div style="margin-left:1.2799in;margin-right:0in;">Scenario:Space Glider attitude control in orbit</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Attitude stream:Ecliptic frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Pos/vel stream:Geocentric cartesian coordinates in ecliptic frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Articulation stream:Exhaust rendering of reaction control thrusters</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Notes:Demonstrates use of attitude stream for object rotation, including visual cues (RCS thruster rendering).</div>
+
+
+'''Space Glider in orbit 2:'''
+
+<div style="margin-left:1.2799in;margin-right:0in;">Scenario:Space Glider in orbit: demonstration of custom animations</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Attitude stream:Local horizon frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Pos/vel stream:Geocentric polar coordinates in equatorial frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Articulation stream:Custom animation sequences</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Notes:This example shows the use of custom animation commands (defined in the vessel plugin module) read from the articulation stream. The Space Glider defines animation commands for various mesh elements (landing gear, airbrakes, airloccks and hatches, radiator deployment, etc.)</div>
+
+
+<div style="margin-left:1.2799in;margin-right:0in;"></div>
+
+'''Lunar transfer:'''
+
+<div style="margin-left:1.2799in;margin-right:0in;">Scenario:Complete transfer simulation from Earth surface (KSC) to landing on the Moon’s surface.</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Attitude stream:Ecliptic frame of reference</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Pos/vel stream:Equatorial frame of reference Earth/Sun/Moon</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Articulation stream:Engine events, custom animation, annotations and time acceleration</div>
+
+<div style="margin-left:1.2799in;margin-right:0in;">Notes:Demonstrates sampling density variations by changing the simulation speed during recording, playback time acceleration and onscreen annotation features. Shows transition of reference object in the .pos stream. Demonstrates ability of long playback sequences (~1 hour at recording speed).</div>
+
+= {{anchor|RefHeadingToc176687328}} SpaceXpanse reference frames =
+
+SpaceXpanse uses ''left-handed'' coordinate systems throughout.
+
+
+'''The global frame.'''
+
+The global frame of reference is the barycentric ecliptic frame for ecliptic and equinox of epoch J2000, where
+
++x points to the vernal equinox
+
++y points to ecliptic zenith
+
+<math>\hat{z}=\hat{y}\times \hat{x}</math>
+
+
+=== Rotating planet frames. ===
+
+Planet frames are fixed to rotating planets, where
+
++x points from the planet centre to surface point latitude 0, longitude 0.
+
++y points from the planet centre to the north pole
+
+<math>\hat{z}=\hat{y}\times \hat{x}</math>
+
+
+=== Local horizon frames. ===
+
+Given planetocentric equatorial longitude and latitude (,), the local horizon frame is given by the tangent plane to the (spherical) planet surface, where
+
++x points east
+
++y points up
+
++z points north
+
+
+'''Local spacecraft frames.'''
+
+The orientation of the spacecraft frame is largely up to the designer. By convention, the following is usually adopted:
+
++x points “right”
+
++y points “up”
+
++z points “forward” (in the direction of the thrust vector of the main engines)
+
+
+= {{anchor|RefHeadingToc176687329}} Cartesian and polar coordinates =
+
+Given SpaceXpanse’s left-handed coordinate system, the transformation between cartesian positions (''x'', ''y'', ''z'') and velocities <math>\left(\dot{x},\dot{y},\dot{z}\right)</math>and spherical polar coordinates (''r'','''','''') and velocities <math>\left(\dot{r},\dot{\phi },\dot{\theta }\right)</math>is defined as
+
+<div style="margin-left:0in;margin-right:0in;"><math>\begin{array}{c}x=r\text{cos}\phi \text{cos}\theta \\ 
+y=r\text{sin}\theta \\ 
+z=r\text{sin}\phi \text{sin}\theta \end{array}</math><math>\begin{array}{c}\dot{x}=\dot{r}\text{cos}\phi \text{cos}\theta -r\dot{\phi }\text{sin}\phi \text{cos}\theta -r\dot{\theta }\text{cos}\phi \text{sin}\theta \\ 
+\dot{y}=\dot{r}\text{sin}\theta +r\dot{\theta }\text{cos}\theta \\ 
+\dot{z}=\dot{r}\text{sin}\phi \text{cos}\theta +r\dot{\phi }\text{cos}\phi \text{cos}\theta -r\dot{\theta }\text{sin}\phi \text{sin}\theta \end{array}</math></div>
+
+and
+
+<div style="margin-left:0in;margin-right:0in;"><math>\begin{array}{c}r=\sqrt{{x}^{2}+{y}^{2}+{z}^{2}}\\ 
+\phi =\text{arctan}\frac{z}{x}\\ 
+\theta =\text{arcsin}\frac{y}{r}\end{array}</math><math>\begin{array}{c}\dot{r}=\dot{y}\text{sin}\theta +\text{cos}\theta \left(\dot{x}\text{cos}\phi +\dot{z}\text{sin}\phi \right)\\ 
+\dot{\phi }=\frac{\dot{z}\text{cos}\phi -\dot{x}\text{sin}\phi }{r\text{cos}\theta }\\ 
+\dot{\theta }=\frac{\dot{y}\text{cos}\theta -\text{sin}\theta \left(\dot{x}\text{cos}\phi +\dot{z}\text{sin}\phi \right)}{r}\end{array}</math></div>

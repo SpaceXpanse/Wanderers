@@ -1,0 +1,43 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XRSound-lib-linktest", "XRSound-lib-linktest\XRSound-lib-linktest.vcxproj", "{F320C36A-20EE-4F7D-88BA-0E5F78B09263}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug-with-SpaceXpanseDebug|x64 = Debug-with-SpaceXpanseDebug|x64
+		Debug-with-SpaceXpanseDebug|x86 = Debug-with-SpaceXpanseDebug|x86
+		Debug-with-SpaceXpanseRelease|x64 = Debug-with-SpaceXpanseRelease|x64
+		Debug-with-SpaceXpanseRelease|x86 = Debug-with-SpaceXpanseRelease|x86
+		Release-with-SpaceXpanseDebug|x64 = Release-with-SpaceXpanseDebug|x64
+		Release-with-SpaceXpanseDebug|x86 = Release-with-SpaceXpanseDebug|x86
+		Release-with-SpaceXpanseRelease|x64 = Release-with-SpaceXpanseRelease|x64
+		Release-with-SpaceXpanseRelease|x86 = Release-with-SpaceXpanseRelease|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseDebug|x64.ActiveCfg = Debug|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseDebug|x64.Build.0 = Debug|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseDebug|x86.ActiveCfg = Debug|Win32
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseDebug|x86.Build.0 = Debug|Win32
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseRelease|x64.ActiveCfg = Debug-with-SpaceXpanseRelease|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseRelease|x64.Build.0 = Debug-with-SpaceXpanseRelease|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseRelease|x86.ActiveCfg = Debug-with-SpaceXpanseRelease|Win32
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Debug-with-SpaceXpanseRelease|x86.Build.0 = Debug-with-SpaceXpanseRelease|Win32
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseDebug|x64.ActiveCfg = Release|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseDebug|x64.Build.0 = Release|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseDebug|x86.ActiveCfg = Release|Win32
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseDebug|x86.Build.0 = Release|Win32
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseRelease|x64.ActiveCfg = Release-with-SpaceXpanseRelease|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseRelease|x64.Build.0 = Release-with-SpaceXpanseRelease|x64
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseRelease|x86.ActiveCfg = Release-with-SpaceXpanseRelease|Win32
+		{F320C36A-20EE-4F7D-88BA-0E5F78B09263}.Release-with-SpaceXpanseRelease|x86.Build.0 = Release-with-SpaceXpanseRelease|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {235177CC-EFE7-4266-B425-2B6FE33C2266}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,660 @@
+= Developer’s Guide: 3D Models =
+
+<div style="text-align:center;"></div>
+
+= Copyright (c) 2000-2006 Martin Schweiger =
+
+= Copyright (c) 2022-2023 SpaceXpanse =
+
+= SpaceXpanse home: [https://www.spacexpanse.org/ www.spacexpanse.org]  =
+
+
+
+
+
+<div style="color:#ffffff;">'''Contents'''</div>'''1Introduction[[#RefHeadingToc93649685|2]]
+
+'''2How to create a new spacecraft class[[#RefHeadingToc93649686|2]]
+
+'''3The vessel class configuration file[[#RefHeadingToc93649687|2]]
+
+:3.1Configuration files for individual vessels[[#RefHeadingToc93649688|5]]
+
+'''4The mesh file[[#RefHeadingToc93649689|5]]
+
+:4.1Mesh groups[[#RefHeadingToc93649690|6]]
+
+:4.2Material list[[#RefHeadingToc93649691|8]]
+
+:4.3Texture list[[#RefHeadingToc93649692|8]]
+
+:4.4Performance optimisation[[#RefHeadingToc93649693|8]]
+
+:4.5Mesh converters[[#RefHeadingToc93649694|9]]
+
+'''5Creating a scenario[[#RefHeadingToc93649695|9]]
+
+'''6Publishing addons[[#RefHeadingToc93649696|9]]
+
+:6.1Function over style[[#RefHeadingToc93649697|9]]
+
+:6.2Creating an addon package[[#RefHeadingToc93649698|10]]
+
+:6.3Putting it on the web[[#RefHeadingToc93649699|10]]
+
+= {{anchor|RefHeadingToc93649685}} Introduction =
+
+This document contains guidelines on developing new 3D models for spacecraft visualisation in SpaceXpanse. It is aimed at addon developers, or anyone who wants to extend SpaceXpanse’s functionality.= {{anchor|RefHeadingToc93649686}} How to create a new spacecraft class =
+
+To add a new spacecraft class to SpaceXpanse, the following steps must be performed:
+
+
+* Define the ''physical parameters ''of the new spacecraft class in a configuration file in the Config subdirectory.
+* Create a ''surface mesh ''which defines the ship’s visual appearance, in the Meshes subdirectory.
+* Optionally, add any ''textures'' used by the vessel, to the Textures subdirectory.
+* Add a ''scenario'' which includes one or more spacecraft of the new class in the Scenarios subdirectory.
+
+
+
+
+
+The above steps allow you to create a basic ship with generic parameters. To fully customize your new spacecraft one more step is required:
+
+
+* Add a DLL module for the new vessel class which customises its behaviour (moving parts, custom cockpit panels, custom flight model, etc.) in the Modules subdirectory.
+
+
+
+
+
+Refer to the SpaceXpanse API document for information on writing vessel modules for SpaceXpanse. A number of sample modules with source code is contained in the SpaceXpansesdk\samples folder.
+
+
+Note that every spacecraft class ''must'' have a configuration file, even if all its parameters are defined in a DLL module. (In this case, the only entry in the configuration file may be the module name.)= {{anchor|RefHeadingToc93649687}} The vessel class configuration file =
+
+Configuration files are ASCII text files which can be edited with any text editor capable of writing plain text files (e.g notepad). All vessel configuration files are by default located in SpaceXpanse’s Config subdirectory (unless the ''ConfigDir'' entry in SpaceXpanse.cfg points to a different directory).
+
+
+Below is a description of the default vessel configuration options recognised by SpaceXpanse. Note that not all options need to be present in a configuration file. In particular vessels defined via costomised modules may specify various parameters directly in the module. Furthermore, vessel modules may read additional custom parameters not listed here from the configuration file.
+
+
+
+{| style="border-spacing:0;width:5.9882in;"
+|-
+| style="border-top:1.5pt solid #000000;border-bottom:1.5pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;color:#000080;" | '''Item'''
+| style="border-top:1.5pt solid #000000;border-bottom:1.5pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;color:#000080;" | '''Type'''
+| style="border-top:1.5pt solid #000000;border-bottom:1.5pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;color:#000080;" | '''Description'''
+| style="border:none;padding:0in;color:#000080;" | 
+|-
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | BaseClass
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | S
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Optional; parent class. Missing entries are taken from this class. Allows the construction of class hierarchies. (Make sure not to introduce circular dependencies!)
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Module
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | S
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Optional; name of plugin module for vessel customisation. The module must be located in the ''Modules'' folder.
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Help
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | S,S
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Optional; name of help file to be used for vessel class specific help when the user presses the “Vessel” button on the Help dialog. The help file must be a compiled html file (.CHM) and be located in directory Html/Vessels. The entry contains the file name without path and extension, and (separated by comma) the name of the first page of the file to be displayed (without extension). Default: no vessel class specific help.
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | EditorCreate
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | B
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | If ''false'', the vessel type does not appear in the list on the vessel creation page of the scenario editor. (default: ''true'')
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | ImageBmp
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | S
+| style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | File name of a bitmap file (BMP) displaying the vessel. The name should include the path (relative to orbiter main directory) and extension (.bmp). This image is shown on the vessel creation page of the Scenario Editor. For best results, it should be size 164x240 pixels.
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | MeshName
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | S
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Name of the mesh used for visualisation
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | EnableFocus
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | B
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | ''true'' if vessel can receive input focus (default: ''true'')
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | EnableXPDR
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | B
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | ''true'' if vessel carries a transponder (default: ''false'')
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | XPDR
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | I
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | transponder channel (in units of 0.05 kHz from 108.0 kHz). Only used if EnableXPDR=true. This default channel may be overridden by a vessel’s scenario script.
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Mass
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Vessel mass (empty) [kg]
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Size
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | (Mean) vessel radius [m]
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | MaxMainThrust
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Main thruster rating [N]
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | MaxRetroTrust
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Retro thruster rating [N]
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | MaxHoverThrust
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Hover thruster rating [N]
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | MaxAttitudeThrust
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Thrust rating for reaction contol engines [N]
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | TouchdownPoints
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V V V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | 3 surface contact points in local vessel coordinates. For aircraft-like configurations these are: nose wheel, left main wheel, right main wheel. (the order is important to define the “up” direction). Other spacecraft types may interpret the points differently.
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | CameraOffset
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Camera position inside the vessel for cockpit view
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | CW
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F F F F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Airflow resistance coefficients: forward, backward, transversal, vertical. Only used by legacy flight model (if no airfoils are defined in the module).
+| style="border:none;padding:0in;" | 
+|- style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| WingAspect
+|| F
+| colspan="2" | The wing aspect ratio (wingspan<sup>2</sup> / wing area). Used for atmospheric drag calculation in the legacy flight model.
+|- style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| WingEffectiveness
+|| F
+| colspan="2" | A wing form factor: ~3.1 for elliptic wings, ~2.8 for tapered wings, ~2.5 for rectangular wings. Only used by legacy flight model.
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | CrossSections
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Cross sections in axis directions (z=longitudinal) [m<sup>2</sup>]
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | RotResistance
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Resistance against rotation around axes in atmosphere, where angular deceleration due to atmospheric friction is ''a''<sup>()</sup><sub>x,y,z</sub> = -''v''<sup>()</sup><sub>x,y,z</sub>  ''r''<sub>x,y,z </sub>with angular velocity ''v''<sup>()</sup> and atmospheric density .
+| style="border:none;padding:0in;" | 
+|- style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| Inertia
+|| V
+| colspan="2" | Principal moments of inertia, mass-normalised (see below) [m<sup>2</sup>]
+|- style="border-top:none;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| GravityGradientDamping
+|| F
+| colspan="2" | Damping coefficient for gravity gradient torque. Determines relaxation time for tidal locking. Default: 0 (undamped).
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | PropellantResource''i''
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F [F]
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Specs for propellant resource ''i'' (''i''  1). First value: max. fuel capacity [kg]. Second value: fuel efficiency factor (>0, default: 1)
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | MaxFuel
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Max. fuel mass [kg]. Obsolete; only used if no propellant resources are defined
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Isp
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | F
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Default value for fuel-specific impulse [m/s]: Amount of thrust [N] obtained by burning 1kg of fuel per second. Ves­sel modules can override this value for individual engines.
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | MEngineRef''i''
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Reference position for main thruster ''i'' (''i''<nowiki>=1…)</nowiki>
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | REngineRef''i''
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Reference position for retro thruster ''i'' (''i''<nowiki>=1…)</nowiki>
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | HEngineRef''i''
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Reference position for hover thruster ''i'' (''i''<nowiki>=1…)</nowiki>
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | AttRef''dij''
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Reference position for attitude thruster (for rotation around axis ''d'' (''d''<nowiki>=X,Y,Z), rotation direction </nowiki>''i'' (''i''<nowiki>=1,2) and thruster index </nowiki>''j'' (''j''<nowiki>=1,2)) for a total of 12 attitude thrusters</nowiki>
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | LongAttRef''ij''
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Reference position for attitude thrusters (for linear forward/backward translation), direction ''i'' (''i''<nowiki>=1,2) and thruster index </nowiki>''j'' (''j''<nowiki>=1,2)) for a total of 4 attitude thrusters</nowiki>
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | DockRef
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Docking reference point for first docking port (obsolete)
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | DockDir
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Docking approach direction for first docking port (obsolete)
+| style="border:none;padding:0in;" | 
+|-
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | DockRot
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | V
+| style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | Longitudinal alignment direction (normal to DockDir) for first docking port (obsolete)
+| style="border:none;padding:0in;" | 
+|- style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| ''<Docklist>''
+|| List
+| colspan="2" | List of positions and approach directions for docking ports (see below).
+|- style="border-top:0.75pt solid #000000;border-bottom:0.75pt solid #000000;border-left:none;border-right:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| ''<Attachment list>''
+|| List
+| colspan="2" | List of positions and approach directions for attachment points (see below).
+|-
+|}
+(S=String, B=Bool, F=Float, V=Vector)
+
+
+<u>Notes:</u>* A vessel class can be derived from a different vessel class, by defining the BaseClass entry. All properties not defined in the new class configuration file are taken from the base class.
+
+
+
+* The mesh name should not contain the file extension (.msh) and should not contain a directory path.
+
+
+
+* The MaxFuel entry has been replaced by PropellantResource, which allows the definition of multiple propellant resources (fuel tanks).
+
+
+
+* The DockRef, DockDir, DockRot entries have been replaced with the more versatile Docklist (see below), which allows the configuration of multiple docking ports and IDS frequencies.
+
+
+
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">BEGIN_DOCKLIST</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<Dock-spec 0>''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<Dock-spec 1>''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''. . .''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<Dock-spec n-1>''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">END_DOCKLIST</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">where ''<Dock-spec i>'':</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<x<sub>i</sub>> <y<sub>i</sub>> <z<sub>i</sub>> <dx<sub>i</sub>> <dy<sub>i</sub>> <dz<sub>i</sub>> <rx<sub>i</sub>> <ry<sub>i</sub>> <rz<sub>i</sub>> [<ids-channel>]''</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<x<sub>i</sub>> <y<sub>i</sub>> <z<sub>i</sub>>'' is the reference position of the docking port in the vessel’s local coordinates. ''<dx<sub>i</sub>> <dy<sub>i</sub>> <dz<sub>i</sub>>'' is the direction in which a ship approaches the docking port in the station’s local reference frame.</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<rx<sub>i</sub>> <ry<sub>i</sub>> <rz<sub>i</sub>>'' is a reference direction perpendicular to the approach direction used for aligning an approaching ship’s rotation along its longitudinal axis.</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<ids-channel>'' is an optional parameter which allows to define the channel for an IDS (Instrument Docking System) transmitter for the dock. The value is an integer from which the frequency is calculated by ''f'' = ''f''<sub>min</sub> + ''<ids-channel>'' * 0.05 kHz, where ''f''<sub>min</sub> = 108.0 kHz.The IDS setting can be overridden by individual vessels via the IDS option in the scenario file. Defining the IDS in the config file is usually only useful for objects with a single instance, for example space stations.</div>
+
+
+* The attachment list is similar to the docklist: it allows to specify points at which vessels can be connected to each other. Unlike docking ports, attachment points define parent-child hierarchies, and each attachment point is either a parent or a child port. For more details see the ''Vessel attachment management'' section in the API Reference Manual.
+
+
+
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">BEGIN_ATTACHMENT</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<Attach-spec 0>''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<Attach-spec 1>''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''. . .''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<Attach-spec n-1>''</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">END_ATTACHMENT</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">where ''<Attach-spec i>'':</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<type> <x<sub>i</sub>> <y<sub>i</sub>> <z<sub>i</sub>> <dx<sub>i</sub>> <dy<sub>i</sub>> <dz<sub>i</sub>> <rx<sub>i</sub>> <ry<sub>i</sub>> <rz<sub>i</sub>> <id>''</div>
+
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<type>'' is a single character: ‘P’ – “attach to a parent”, or ‘C’ – “attach to a child”.</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">The next 9 entries define the attachment position and direction in the same way as docking ports.</div>
+
+<div style="margin-left:0.2957in;margin-right:0in;">''<id>'' is a string of up to 8 characters used for defining compatibility between attachment points.</div>
+
+
+* '''Inertia tensor ''J'':''' Relates angular momentum and angular velocity: <math>L=J\cdot \omega </math><math>J=\frac{1}{M}\underset{\text{Vol}}{\int }m\left(r\right)\left(\begin{array}{ccc}y\left(r{)}^{2}+z\right(r{)}^{2}& 	x\left(r\right)y\left(r\right)& 	x\left(r\right)z\left(r\right)\\ 
+y\left(r\right)x\left(r\right)& 	x\left(r{)}^{2}+z\right(r{)}^{2}& 	y\left(r\right)z\left(r\right)\\ 
+z\left(r\right)x\left(r\right)& 	z\left(r\right)y\left(r\right)& 	x\left(r{)}^{2}+y\right(r{)}^{2}\end{array}\right)\text{dr}</math>where ''M'' is the total vessel mass, and the integration is over the vessel volume. Note that this definition normalises by ''M'', so the unit of ''J'' is [m<sup>2</sup>]. The principal moments of inertia (PMI) ''J<sub>x</sub>, J<sub>y</sub>, J<sub>z''</sub> required by the configuration file are the diagonal elements of ''J'' in a reference frame in which ''J'' is diagonal:<math>\hat{J}=\left(\begin{array}{ccc}{J}_{x}& 	0& 	0\\ 
+0& 	{J}_{y}& 	0\\ 
+0& 	0& 	{J}_{z}\end{array}\right)</math>
+
+
+
+
+{| style="border-spacing:0;width:6.4979in;"
+|-
+| style="border:none;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | [[Image:excl.png|top]][[Image:Excl.png|top]]
+| style="border:0.5pt solid #ff0000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;" | The SDK contains a simple tool to calculate the inertia tensor for a given mesh: SpaceXpansesdk\utils\shipedit.exe. The tool requires “well behaved” meshes (composed of closed compact surfaces) and assumes a homogeneous density distribution inside the mesh. The latter is not very realistic, so the results must be interpreted carefully. They should still serve as a good starting point for experimentation.
+|-
+|}
+== {{anchor|RefHeadingToc93649688}} Configuration files for individual vessels ==
+
+A vessel only requires an individual definition file if it is not an instance of a vessel class. In this case the format for the vessel’s .cfg file is identical to the vessel class .cfg files described above.
+
+
+= {{anchor|RefHeadingToc93649689}} The mesh file =
+
+SpaceXpanse uses a proprietary mesh file format. Mesh files are ASCII text files. (A binary format may be introduced in the future). Mesh files are located in the Meshes subdirectory unless the MeshDir entry in SpaceXpanse.cfg points to a different directory.
+
+
+SpaceXpanse meshes are defined in a left-handed coordinate system. Vessel meshes should be oriented such that the ''vessel’s nose'' (or more precisely, its ''main thrust direction'') points in the positive z-direction, the positive x-axis points ''right'', and the positive y-axis points ''up''.
+
+
+The units for vertex coordinates are ''meters'' [m].
+
+
+Mesh file format:
+
+MSHX1header
+
+GROUPS'' <n><n>: ''number of groups
+
+''<group 1>''group spec 1
+
+''<group 2>''group spec 2
+
+''…''
+
+''<group n>''group spec ''n''
+
+MATERIALS'' <m><m>: ''number of materials
+
+''<mtrl-name 1>''material name 1
+
+''<mtrl-name 2>''material name 2
+
+''…''
+
+''<mtrl-name m>''material name ''m''
+
+''<material 1>''material spec 1
+
+''<material 2>''material spec 2
+
+''…''
+
+''<material m>''material spec ''m''
+
+TEXTURES'' <t><t>: ''number of textures
+
+''<tex-name 1>''texture name 1
+
+''<tex-name 2>''texture name 2
+
+''…''
+
+''<tex-name t>''texture name ''t''
+
+
+Group specs:
+
+[LABEL <''label''>]group label; optional
+
+[MATERIAL <''i''>]material index; optional
+
+[TEXTURE <''j''>]texture index; optional
+
+[TEXWRAP <''wrap''>]texture wrap mode: <''wrap''> = U or V or UV<nowiki>; optional</nowiki>
+
+[NONORMAL]“no normals” flag; see below; optional
+
+[FLAG <''f''>]multi-purpose bit-flags; see below; optional
+
+GEOM'' <nv> <nt><nv>:'' vertex count, ''<nt>:'' triangle count
+
+''<vtx 0>''vertex spec 0
+
+''<vtx 1>''vertex spec 1
+
+''…''
+
+''<vtx nv-1>''vertex spec ''nv''-1
+
+''<tri 0>''triangle spec 0
+
+''<tri 1>''triangle spec 1
+
+''…''
+
+''<tri nt-1>''triangle spec ''nt''-1
+
+
+Vertex specs:
+
+''<x> <y> <z> [<nx> <ny> <nz> [<tu> <tv>]]''
+
+''<x> <y> <z>: ''vertex position
+
+''<nx> <ny> <nz>: ''vertex normal (optional)
+
+''<tu> <tv>: ''texture coordinates (optional)
+
+Missing normals are automatically calculated as the mean of the normals of adjacent faces. Texture coordinates are only required if the group uses a texture.
+
+
+Triangle specs:
+
+''<i> <j> <k>''vertex indices (zero-based). Left-hand face is rendered.
+
+
+Material specs:
+
+MATERIAL ''<mtrl-name>''material header
+
+''<dr> <dg> <db> <da>''Diffuse colour (RGBA)
+
+''<ar> <ag> <ab> <aa>''Ambient colour (RGBA)
+
+''<sr> <sg> <sb> <sa> <pow>''Specular colour (RGBA) and specular power (float)
+
+''<er> <eg> <eb> <ea>''Emissive colour (RGBA)
+
+
+== {{anchor|RefHeadingToc93649690}} Mesh groups ==
+
+Meshes are divided into groups. Each group can define its own material and texture specification. For example, if you want different parts of the object to have different material properties, you need to split the mesh into groups accordingly.
+
+
+Each group contains* <div style="color:#ffffff;">'''NEW!'''</div>An optional label (tag LABEL). The label must be a single word without white spaces. It has no direct effect on the mesh, but can be used to associate a name with a mesh group. Named groups are easier to access from within a vessel module code than group indices (e.g. for defining animations etc.)
+* An optional material index. Indices ≥1 select a material of the mesh’s material list. Index 0 means “default material” (which is white, diffuse and opaque). If the group doesn’t specify a material index it inherits the previous group’s material. The first group in the mesh ''must'' specify a material index, otherwise the result is undefined.
+* An optional texture index. Indices ≥1 select a texture from the mesh’s texture list. Index 0 means “no texture”. If the group doesn’t specify a texture index it inherits the previous group’s texture. The first group in the mesh ''must'' specify a texture index, otherwise the result is undefined.
+* An optional TEXWRAP flag. This defines how textures wrap around the object. “U” causes textures to wrap in the u-coordinate direction in texel space, “V” wraps in v-coordinate direction, and “UV” wraps in both directions. Default is no wrapping.
+* An optional NONORMAL flag. This indicates that vertex definitions in this group don’t contain normal definitions, and the first two numbers after the vertex coordinate (x,y,z) triplet is interpreted as texture coordinate (u,v) pair.
+* An optional FLAG entry. This allows to specify a user-defined 32-bit flag (in hex format) whose interpretation is context-dependent. Below is a list of flags currently recognised by SpaceXpanse:
+
+
+
+
+{| style="border-spacing:0;width:5.4139in;"
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| '''Mesh type'''
+|| '''Flag'''
+|| '''Interpretation'''
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| Vessel
+|| 0x00000001
+|| Do not use this group to render ground shadows
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| Vessel
+|| 0x00000002
+|| Do not render this group
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| Vessel
+|| 0x00000004
+|| Do not apply lighting when rendering this group
+|- style="border:0.5pt solid #000000;padding-top:0in;padding-bottom:0in;padding-left:0.075in;padding-right:0.075in;"
+|| Vessel
+|| 0x00000008
+|| Texture blending directive: additive with background
+|-
+|}
+* A GEOM specification, defining the number of vertices and triangles in the group.
+* A vertex list (see below)
+* A triangle list (see below)
+
+
+
+
+
+'''Vertex lists'''
+
+Each group contains a vertex list, defining the positions, and optionally normal directions and texture coordinates of the vertices in the group.
+
+Each line in the list defines a vertex, and contains up to 8 floating point numbers (separated by spaces)* The first 3 numbers contain the cartesian vertex coordinates (x,y,z) in the object local coordinate space. Units are meters [m]
+* The next 3 numbers (if present) contain the vertex normal direction (nx,ny,nz) (unless the group has set the NONORMAL flag). The normal direction is the direction perpendicular to the mesh surface at the vertex position. SpaceXpanse needs this to generate correct lighting effects. If no normals are specified (or if the NONORMAL flag is set) SpaceXpanse guesses the normal direction as the average of the normals of the surrounding triangles. This works well for smooth surfaces, but should be avoided for surfaces which contain sharp edges. Normal directions should be normalised, i.e. sqrt(nx<sup>2</sup>+ny<sup>2</sup>+nz<sup>2</sup>) = 1.
+* The next 2 numbers (if present) contain the vertex texture coordinates (u,v). Texture coordinates are only required if the group uses a texture (i.e. has texture index ≥1). Texture coordinates define how a rectangular 2D texture is mapped onto the object surface. Texture coordinate (0,0) refers to the lower left corner of the texture, (1,1) refers to the upper right corner. Coordinates > 1 are allowed and cause textures to repeat periodically.
+
+
+
+
+
+<u>Notes:</u>* Vertices located at sharp edges or corners require multiple entries in the vertex list, because they have multiple normal directions (in other words, the surfaces are ''non-differentiable'' at edges). In that case you should always define the normals in the mesh file, and not leave it to SpaceXpanse to generate them for you. Otherwise the edges will appear unrealistically smooth.
+* Likewise, vertices with multiple vertex coordinates (e.g. at the edge between two texture maps) need multiple entries in the vertex list.
+
+
+
+
+
+'''Triangle lists'''
+
+The group’s triangle list follows immediately below the vertex list. It defines the triangles which compose the group’s mesh surface.* Each line in the list defines a triangle and consists of 3 integer numbers (i,j,k). Each of the numbers specifies a vertex from the group’s vertex list (starting from 0)
+* Only the “clockwise” (CW) side of each triangle is rendered: the side which, if you look at it, has the vertices arranged in a clockwise order. The opposite “counterclockwise” (CCW) side is invisible.
+* If you need to render both sides of a triangle (e.g. for a thin plate) you need to define two triangles.
+* If you want to flip the rendered side of a triangle (e.g. to correct for “inside out” artefacts) you need to rearrange the triangle indices in the following way:(i,j,k) -> (i,k,j)
+
+== {{anchor|RefHeadingToc93649691}} Material list ==
+
+Materials allow to specify the homogeneous lighting properties of a mesh group. The material lists consists of* A header line, MATERIALS <m>, defining the number <m> of materials.
+* A list of material ''names''.
+* A list of material ''properties''.
+
+
+
+
+
+Each material property specification consists of 4 RGBA quadruplets, where R, G and B define the red, green and blue components, and A is the opacity. RGB values should be between 0 and 1, but can be > 1 for special effects. A ''must'' be between 0 (fully transparent) and 1 (fully opaque).* The first line specifies the ''diffuse material colour''. This is the colour that is diffusely (in all directions) reflected from an illuminated surface.
+* The second line specifies the ''ambient material colour''. This is the colour of an unlit surface.
+* The third line specifies the specular colour. This is the colour of light reflected by a polished surface into a narrow beam. The ''power'' entry specifies the width of the cone into which specular light is reflected. Higher values mean a narrower cone, i.e. sharper reflections. Typical values are around 10. If omitted, the default value for power is 0.
+* The fourth line specifies the ''emissive colour''. This is the colour of light emitted by a glowing surface.
+
+== {{anchor|RefHeadingToc93649692}} Texture list ==
+
+The texture list contains the names of texture files used by the various mesh groups. Texture names should contain file extensions “.dds” but no directory paths. Textures must be located in SpaceXpanse’s Textures subdirectory.
+
+
+<u>Notes:</u>* Textures must be in DDS format (“Direct Draw Surface”). A DirectX SDK tool, dxtex, which is included in the SpaceXpanse SDK package, allows to convert BMP bitmaps into DDS.
+* You should store the textures either in DXT1 compressed format (opaque textures or textures with binary transparency), or in DXT5 compressed format (for textures with continuous transparency).
+* For maximum compatibility, avoid textures larger than 256x256 pixels, because of limitations of some older graphics cards.
+* If a texture is to be dynamically updated during the simulation (e.g. instrument panels in virtual cockpits), the texture name should be followed by the flag ‘D’. SpaceXpanse will decompress these textures to allow more efficient dynamic updates.
+
+== {{anchor|RefHeadingToc93649693}} Performance optimisation ==
+
+To achieve the best results with your new mesh, consider the following points:* Texture groups which use the same texture should be stored in sequence in the mesh. Unnecessary switching between textures can degrade performance if textures must be swapped in and out of video memory.
+* Within a sequence of groups using the same textures, groups which use the same material should be stored in sequence. Again, this avoids the need of switching render parameters.
+* Avoid large numbers of very small groups. If small groups use the same parameters (material, texture, etc.) they should be merged into a single group.
+* Groups which use transparent materials or textures should be sorted to the end of the mesh. If transparent groups overlap, the innermost ones should be listed before the outer ones.In order to render transparency correctly, DirectX requires the scene seen through the transparent object to be fully built before the transparent object itself is rendered. Any objects rendered after the transparent object will be masked by it.
+* Objects with transparency and specular reflection are more expensive to render than opaque and diffusive objects, so use these features sparingly.
+* And most importantly, ''keep the vertex count low!'' (See section 6.1)
+
+== {{anchor|RefHeadingToc93649694}} Mesh converters ==
+
+If you want to convert an existing model into an SpaceXpanse mesh, check the SpaceXpanse web forum for mesh converters created by other users. There is currently a converter which converts from Truespace asc format, which many 3D editors can export. If you have written your own mesh editor or converter, publish it!== Mesh utilities ==
+
+The SpaceXpanse SDK contains a few utilities that help to extract data from mesh files. They are located in the SpaceXpansesdk\utils folder.
+
+
+'''shipedit''': extracts geometric information from a mesh that are useful for defining physical parameters for vessel modules. These include the bounding box extents, volume, cross-sectional areas, and inertia tensor for homogeneous density distribution.
+
+
+<div style="color:#ffffff;">'''NEW!'''</div>'''meshc''': mesh compiler. Eventually this may be extended to convert mesh files from text to a binary format (for more compact storage and faster loading) but currently it only extracts mesh parameters into a C header file that can be included in a vessel module project for convenient access to named mesh groups.= {{anchor|RefHeadingToc93649695}} Creating a scenario =
+
+To actually fly your new creation in SpaceXpanse, you need to create a scenario which contains one (or more) ships of the new class. The easiest way to do this is by editing one of the existing scenario files in the Scenarios subdirectories. For example, to try a new vessel class, you could:
+
+
+* Open the “Habana spaceport.scn” file in notepad
+
+* Replace the lineGL-01:DeltaGliderwithGL-01:<new class>where <new class> is the name of your new vessel class.
+
+* Save the scenario under a new name.
+
+
+
+
+
+When you launch this modified scenario, you will find yourself in the cockpit of your new ship, parked on a launchpad of Habana International Spaceport.= {{anchor|RefHeadingToc93649696}} Publishing addons =
+
+Now that you have created and tested your new ship, you want to share it with the rest of the SpaceXpanse community. Here is how to do it:== {{anchor|Ref6943103}} {{anchor|RefHeadingToc93649697}} Function over style ==
+
+It may be tempting to create an extremely detailed 3D model with tens of thousands of mesh vertices, and megabytes of textures – but don’t. Remember that many people may have lower-powered computers than you, and that the sexiest spacecraft is worthless if it degrades framerate to un-playability. Also, your model may compete with tens or hundreds of other objects for processor cycles.
+
+Therefore, aim for ''low polygon count''. Creating good-looking objects with low-resolution meshes is the high art of 3D modelling for real-time applications. If you are importing an existing model into SpaceXpanse, see whether your 3D editor has an option to reduce the polygon count (sometimes called ''optimisation'' or ''decimation'') before converting to the SpaceXpanse mesh format. As a rough guideline, I would suggest to keep the vertex count below 10 000 vertices for each spacecraft.
+
+
+Likewise, try to limit the textures used by your object. Graphics cards have limited texture memory, and your ship will share this space with lots of other objects. Therefore I suggest* a small number of texture maps, at dimension 256x256 or smaller.
+* The use of generic texture maps (e.g. textures for solar panels etc.) which can be re-used by other models, helps reduce texture memory requirements. Have a look at the SpaceXpanse Textures directory, to see whether an existing standard SpaceXpanse texture is usable for your model.
+* Remember that some older graphics cards do not support textures larger than 256x256. Avoid anything larger if you want to ensure compatibility.
+
+
+
+
+
+These limits are mere suggestions for published addons to ensure reasonable performance on low end computers – you are free to ignore them. You should however mention the complexity of your model (i.e. the vertex count) and possible incompatibilities in the readme file accompanying the addon, to help users decide if they can use your addon.
+
+
+Of course there are no limitations for models created for your private use.== {{anchor|RefHeadingToc93649698}} Creating an addon package ==
+
+Create a zip file containing all the components of your new model (readme file, configuration file, mesh, textures, scenario). The zip file should contain directory information of the files, so that everything ends up in the right place when the user unpacks the archive in the SpaceXpanse home directory.
+
+Do NOT include modified versions of standard SpaceXpanse files (like planet configuration files or solar system configuration files) which may overwrite existing files. If your package needs to modify standard files this should be described in the readme file.
+
+Test that the package unzips and runs ok before publishing it (ideally in a fresh SpaceXpanse installation)
+
+
+Make sure your package contains a readme file with at least the following information:* Your name and email
+* The SpaceXpanse version for which the package was written
+* A description of the package (what kind of ship, etc.)
+* A list of files in the package
+* Installation instructions, including required changes to standard SpaceXpanse configuration files.
+* An (approximate) vertex count so that users can estimate the performance impact
+
+== {{anchor|RefHeadingToc93649699}} Putting it on the web ==
+
+Put your new package on a web site (with a short description and an optional screen shot) and tell others about it! If you haven’t got web space, submit it to one of the SpaceXpanse repositories set up by SpaceXpanse users. For widest publicity, you should put a note with link in the SpaceXpanse forum, or email the SpaceXpanse mailing list. Finally, you may want to consider submitting a screenshot of your addon to be published on the official SpaceXpanse web site. Check the SpaceXpanse gallery page for a link to submission guidelines.
+
+
+

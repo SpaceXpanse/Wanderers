@@ -1,0 +1,4 @@
+BEGIN_HYPERDESC
+<h1>Replay recorded sessions</h1>
+<p>This folder contains playbacks of sessions you have recorded earlier.</p>
+END_HYPERDESC
