@@ -10,12 +10,12 @@ Massive multiplayer online game with realistic look, physics and economics
 * In-game communication in real time /through [**Metalog**](https://github.com/SpaceXpanse/Whitepaper/blob/main/README.md#community)/
 * Creation and customization of avatars
 * NFTs for ownership of land, objects and goods
-* Artificial inteligence for automation of the gameplay /TBD/
+* Artificial Intelligence for automation of the gameplay /TBD/
 * VR gaming
 
 **SpaceXpanse: Wanderers** is a video game that lets you explore and colonize a virtual metaverse, with a twist - it incorporates blockchain technology for a more secure and transparent gaming experience.
 
-In the game, you can build and customize your own spacecrafts, travel through the vastness of the outer space, prospect new celestial bodies and resources and much more. You will be able to establish bases, develop new technologies, and trade resources with other players in the game.
+In the game, you can build and customize your own spacecrafts, travel through the vastness of the outer space, prospect for new celestial bodies and resources, and much more. You will be able to establish bases, develop new technologies, and trade resources with other players in the game.
 
 Now, here's where the blockchain technology comes in. When you perform any in-game action, like trading resources or acquiring new assets, the blockchain records this activity in its decentralized ledger. This means that your in-game transactions are secure, transparent, and immutable.
 
